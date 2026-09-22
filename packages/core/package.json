@@ -1,0 +1,19 @@
+{
+  "name": "@adapt/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The ADAPT engine: strain model, adaptation graph, movement-quality signal, and the learning loop. Platform-agnostic by contract — see eslint.config.js.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
+}

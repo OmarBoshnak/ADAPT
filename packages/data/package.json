@@ -1,0 +1,21 @@
+{
+  "name": "@adapt/data",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vendored Free Exercise DB (Unlicense), the authored ADAPT home movement pack, and the generated adaptation graph.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./exercises.json": "./vendor/free-exercise-db/exercises.json",
+    "./graph.json": "./generated/graph.json"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@adapt/core": "*"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "adapt",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "ADAPT — an adaptive fitness product for Amazon Fire TV. Your workout reacts to you.",
+  "license": "Apache-2.0",
+  "workspaces": [
+    "packages/*",
+    "apps/relay",
+    "tools/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "typecheck": "tsc --build --force",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "graph": "npm run build -w @adapt/build-graph && node tools/build-graph/dist/cli.js",
+    "sim": "npm run -w @adapt/sim start",
+    "relay": "npm run -w @adapt/relay dev",
+    "fake-sensor": "npm run -w @adapt/fake-sensor start",
+    "audit:copy": "bash scripts/audit-copy.sh",
+    "verify": "npm run typecheck && npm run lint && npm test && npm run audit:copy"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/node": "^24.3.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.36.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.0",
+    "vitest": "^3.2.4"
+  }
+}

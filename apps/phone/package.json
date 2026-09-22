@@ -1,0 +1,26 @@
+{
+  "name": "adapt-phone",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "expo": "~57.0.24",
+    "expo-keep-awake": "~57.0.2",
+    "expo-sensors": "~57.0.3",
+    "expo-speech-recognition": "^57.1.0",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "private": true,
+  "description": "ADAPT phone companion — lies face-up on the floor, senses movement quality, and listens for correction words."
+}

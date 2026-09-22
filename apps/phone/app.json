@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "ADAPT Sensor",
+    "slug": "adapt-phone",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0E2A38",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.adapt.sensor",
+      "infoPlist": {
+        "NSMotionUsageDescription": "ADAPT reads motion from the phone on the floor beside you to sense how your movement is going, so the workout can adapt.",
+        "NSMicrophoneUsageDescription": "ADAPT listens for a short list of workout words like “easier” so you can change the workout without picking anything up.",
+        "NSSpeechRecognitionUsageDescription": "Speech is recognised on this device to match a short list of workout words. Nothing is recorded or sent anywhere.",
+        "UIBackgroundModes": []
+      }
+    },
+    "android": {
+      "package": "com.adapt.sensor",
+      "adaptiveIcon": {
+        "backgroundColor": "#0E2A38",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["android.permission.RECORD_AUDIO", "android.permission.INTERNET"]
+    },
+    "plugins": [
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "ADAPT listens for a short list of workout words like “easier” so you can change the workout without picking anything up.",
+          "speechRecognitionPermission": "Speech is recognised on this device to match a short list of workout words. Nothing is recorded or sent anywhere.",
+          "androidSpeechServicePackages": []
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+# dependencies
+node_modules/
+.pnp.*
+
+# build output
+dist/
+build/
+*.tsbuildinfo
+coverage/
+
+# native
+apps/tv/android/app/build/
+apps/tv/android/build/
+apps/tv/android/.gradle/
+apps/tv/ios/Pods/
+apps/tv/ios/build/
+apps/phone/.expo/
+apps/phone/ios/
+apps/phone/android/
+*.apk
+*.aab
+*.ipa
+
+# python
+services/coach/.venv/
+__pycache__/
+*.pyc
+
+# env & secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.keystore
+!debug.keystore
+.aws/
+
+# os / editor
+.DS_Store
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# vendored dataset git metadata
+packages/data/vendor/**/.git/

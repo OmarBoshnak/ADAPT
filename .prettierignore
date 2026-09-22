@@ -1,0 +1,8 @@
+node_modules/
+dist/
+build/
+coverage/
+packages/data/vendor/
+packages/data/dist/
+apps/tv/android/
+apps/phone/.expo/
