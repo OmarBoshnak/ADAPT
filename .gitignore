@@ -9,11 +9,11 @@ build/
 coverage/
 
 # native
-apps/tv/android/app/build/
-apps/tv/android/build/
-apps/tv/android/.gradle/
-apps/tv/ios/Pods/
-apps/tv/ios/build/
+apps/tv-fireos/android/app/build/
+apps/tv-fireos/android/build/
+apps/tv-fireos/android/.gradle/
+apps/tv-fireos/ios/Pods/
+apps/tv-fireos/ios/build/
 apps/phone/.expo/
 apps/phone/ios/
 apps/phone/android/

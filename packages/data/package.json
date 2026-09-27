@@ -9,7 +9,8 @@
   "exports": {
     ".": "./dist/index.js",
     "./exercises.json": "./vendor/free-exercise-db/exercises.json",
-    "./graph.json": "./generated/graph.json"
+    "./graph.json": "./generated/graph.json",
+    "./session-graph.json": "./generated/session-graph.json"
   },
   "scripts": {
     "build": "tsc --build",

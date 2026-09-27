@@ -8,7 +8,8 @@
   "workspaces": [
     "packages/*",
     "apps/relay",
-    "tools/*"
+    "tools/build-graph",
+    "tools/sim"
   ],
   "engines": {
     "node": ">=20"
@@ -18,12 +19,12 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
-    "typecheck": "tsc --build --force",
+    "typecheck": "tsc --build && tsc -p tsconfig.tests.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "graph": "npm run build -w @adapt/build-graph && node tools/build-graph/dist/cli.js",
-    "sim": "npm run -w @adapt/sim start",
+    "graph": "tsc --build && node tools/build-graph/dist/cli.js",
+    "sim": "tsc --build && node tools/sim/dist/cli.js",
     "relay": "npm run -w @adapt/relay dev",
     "fake-sensor": "npm run -w @adapt/fake-sensor start",
     "audit:copy": "bash scripts/audit-copy.sh",

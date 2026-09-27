@@ -25,6 +25,8 @@ EXCLUDES=(
   --include=*.js
   --include=*.jsx
   --exclude=*.d.ts
+  # Tests specify these rules, so they necessarily name the forbidden words.
+  --exclude=*.test.ts
   --exclude=package-lock.json
   --exclude-dir=node_modules
   --exclude-dir=dist
@@ -43,12 +45,18 @@ strip_comments() {
   grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|\*|/\*|#)'
 }
 
+# Developer diagnostics never reach a screen: thrown exceptions and console output. The
+# word "error" in `throw new Error(...)` is an identifier, not adaptation copy.
+strip_diagnostics() {
+  grep -vE 'new Error\(|console\.(error|warn|log|info)\('
+}
+
 report() {
   local label="$1" pattern="$2" explanation="$3"
   local hits
   hits=$(grep -rniE "$pattern" "${SEARCH_PATHS[@]}" "${EXCLUDES[@]}" 2>/dev/null \
     | grep -viE '(audit-copy|FRICTION-LOG|PRODUCT-FEEDBACK|eslint\.config)' \
-    | strip_comments || true)
+    | strip_comments | strip_diagnostics || true)
   if [[ -n "$hits" ]]; then
     echo "✗ $label"
     echo "  $explanation"

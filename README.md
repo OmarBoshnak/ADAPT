@@ -30,13 +30,11 @@ So there are two distinct moments, and both are visible on screen:
 
 ## Project status
 
-Phase 0 complete — foundations and platform de-risking. See [the build plan](docs/) for phases.
-
 | Phase | Scope | State |
 | --- | --- | --- |
-| 0 | Monorepo, dataset, TV + phone scaffolds, emulator | ✅ complete |
-| 1 | The engine: strain, graph, signal, learning | ⬜ next |
-| 2 | Relay + wire protocol | ⬜ |
+| 0 | Monorepo, dataset, TV + phone scaffolds, emulator, Vega SDK | ✅ complete |
+| 1 | The engine: strain, graph, signal, learning, simulator | ✅ complete — 169 tests |
+| 2 | Relay + wire protocol | ⬜ next |
 | 3 | TV app — 13 screens | ⬜ |
 | 4 | Phone companion | ⬜ |
 | 5 | Live integration & tuning | ⬜ |
@@ -46,17 +44,105 @@ Phase 0 complete — foundations and platform de-risking. See [the build plan](d
 
 ---
 
+## The engine, and how to watch it think
+
+Everything that makes ADAPT adaptive lives in `packages/core` as pure TypeScript. You can run a
+complete session — raw floor-vibration samples through the real estimators, into the real strain
+model, out as adaptations and learning — in about a second, with no device:
+
+```bash
+npm run graph
+```
+
+```bash
+npm run sim
+```
+
+```bash
+npm run sim -- converge
+```
+
+`graph` builds and validates the adaptation graph and prints every ladder. `sim` runs the two-session
+demo arc and **exits non-zero if it breaks**. `converge` shows the model learning a person it
+misjudged by 20%.
+
+What the simulator shows today:
+
+```
+   hero moment   Jumping Jacks adapted 65 s in (session 1)  →  21 s in (session 2)
+   ✓ Same movement, adapted 68% sooner into it, unprompted, from a lighter plan.
+
+   session   threshold   who acted first        corrections
+         1        90.4   person 06:19                    3
+         2        70.3   model  06:23                    0     ← the person stops needing to ask
+```
+
+**Strain** accumulates as intensity × time, costing more as it builds and as movement degrades,
+easing during rests. **The generator** plans each session to reach its threshold about two-thirds
+through — *plan to the edge, adapt to stay under*. **Learning** moves the threshold toward the
+strain level at which the person actually asked for easier, aiming 3% below it so that once
+learned, the model steps in first. Every constant in `strain.ts` and `learning.ts` carries its
+reasoning in a comment, including the three design flaws the simulator caught along the way.
+
+### The adaptation graph
+
+| | |
+| --- | --- |
+| Corpus | 898 exercises — 876 Free Exercise DB + 22 authored |
+| Session pool | 29 movements in 9 ladders, 20 of which a session can start on |
+| Automatic step-down edges (wider corpus) | 18.5% — deliberately conservative: same pattern, category, equipment and exact muscles, and never "easier" by adding a jump |
+| Automatic substitute edges | 82.9% |
+
+Ladders cross sources on purpose — `Star Jump` (dataset) → `Jumping Jacks` → `Step Jacks` →
+`Toe-Tap Jacks` — because to the engine they are one graph. Pool intensities are hand-calibrated:
+Step Jacks and Toe-Tap Jacks share every field the dataset has, so no formula over those fields
+could order them. The formula ranks the rest of the corpus.
+
+### Honest limits
+
+**A phone on the floor feels the floor.** Jumps and jacks leave sharp landings and are measured
+well; stepping is measured by rhythm; squats and punches barely register and are reported with
+reduced confidence; a plank registers nothing at all, and ADAPT never pretends otherwise — holds
+run on the strain prediction alone. Thick carpet damps everything; the estimator notices and lowers
+its own confidence. Film on a hard floor.
+
+**The signal estimators are tuned on synthetic traces.** Phase 5 records real traces from a real
+floor and re-tunes against them.
+
+**The demo uses a fixed seed** (`5`), chosen because its plan puts Jumping Jacks where the model
+first reaches its threshold. The seed picks *which* generated plan is filmed; every adaptation in it
+is still computed live.
+
+---
+
 ## Repository layout
 
 ```
 packages/core     The engine. Pure TypeScript, zero platform imports (enforced by ESLint).
 packages/data     Vendored Free Exercise DB + the authored ADAPT home movement pack.
-apps/tv           react-native-tvos — the Fire OS app. The product.
+apps/tv           Vega OS (React Native for Vega) — the Fire TV app. The product.
+apps/tv-fireos    react-native-tvos / Fire OS. Kept as a working fallback, not maintained.
 apps/phone        Expo — the floor sensor and microphone.
 apps/relay        Fastify + ws — pairing and message bus.
 services/coach    Python — Strands agent on Bedrock AgentCore.
 tools/            Graph builder, headless session simulator, fake sensor.
 ```
+
+### Why Vega OS
+
+Amazon retired the Fire OS emulator and points developers at a generic Android TV AVD, which is
+not obviously "the Fire TV/Vega simulator" the hackathon rules name. The **Vega Virtual Device is
+the only simulator Amazon actually ships for Fire TV**, so targeting Vega removes that ambiguity
+at no cost rather than accepting it.
+
+Everything this product needs is supported there: `react-native-svg` (the strain curve),
+`react-native-reanimated` (the reactive field), `async-storage` (the learned profile), native
+WebSocket (the phone relay), and a focus API that is a superset of react-native-tvos —
+`TVFocusGuideView`, `hasTVPreferredFocus` and `useTVEventHandler`, plus Vega's own `trapFocus`,
+`FocusManager` and `Navigable`.
+
+The Fire OS app under `apps/tv-fireos` builds and runs today. It is insurance, not a second
+product — it exists so a late blocker on Vega cannot sink the submission.
 
 `packages/core` is deliberately free of `react-native`, `expo` and `node:*` imports. That purity is
 what lets a full session be simulated in milliseconds with no emulator, and what would make a Vega

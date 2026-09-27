@@ -1,0 +1,1053 @@
+{
+  "version": "0.2.0",
+  "sessionPool": [
+    "Bodyweight_Squat",
+    "Double_Leg_Butt_Kick",
+    "Freehand_Jump_Squat",
+    "Lateral_Bound",
+    "Mountain_Climbers",
+    "Split_Jump",
+    "Star_Jump",
+    "adapt_alternating_reverse_lunge",
+    "adapt_boxer_shuffle",
+    "adapt_burpees",
+    "adapt_butt_kick_march",
+    "adapt_butt_kicks",
+    "adapt_high_knee_march",
+    "adapt_high_knees",
+    "adapt_jumping_jacks",
+    "adapt_reverse_toe_taps",
+    "adapt_side_step_touch",
+    "adapt_skater_hops",
+    "adapt_skater_steps",
+    "adapt_slow_climbers",
+    "adapt_squat_calf_raises",
+    "adapt_squat_thrusts",
+    "adapt_standing_climbers",
+    "adapt_standing_march",
+    "adapt_standing_punches",
+    "adapt_step_back_burpees",
+    "adapt_step_jacks",
+    "adapt_step_punch",
+    "adapt_toe_tap_jacks"
+  ],
+  "exercises": {
+    "Bodyweight_Squat": {
+      "name": "Bodyweight Squat",
+      "force": "push",
+      "level": "beginner",
+      "mechanic": "compound",
+      "equipment": "body only",
+      "primaryMuscles": [
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "glutes",
+        "hamstrings"
+      ],
+      "instructions": [
+        "Stand with your feet shoulder width apart. You can place your hands behind your head. This will be your starting position.",
+        "Begin the movement by flexing your knees and hips, sitting back with your hips.",
+        "Continue down to full depth if you are able,and quickly reverse the motion until you return to the starting position. As you squat, keep your head and chest up and push your knees out."
+      ],
+      "category": "strength",
+      "images": [
+        "Bodyweight_Squat/0.jpg",
+        "Bodyweight_Squat/1.jpg"
+      ],
+      "id": "Bodyweight_Squat",
+      "source": "free-exercise-db",
+      "intensity": 3.9,
+      "signalProfile": "sustained",
+      "tags": [
+        "deep-knee-flexion"
+      ],
+      "adaptsDownTo": null,
+      "substituteWith": "adapt_standing_march",
+      "expectedCadence": 22,
+      "family": "squat",
+      "cue": "Sit back as far as is comfortable"
+    },
+    "Double_Leg_Butt_Kick": {
+      "name": "Double Leg Butt Kick",
+      "force": "push",
+      "level": "beginner",
+      "mechanic": "compound",
+      "equipment": "body only",
+      "primaryMuscles": [
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "abductors",
+        "adductors",
+        "calves",
+        "glutes",
+        "hamstrings"
+      ],
+      "instructions": [
+        "Begin standing with your knees slightly bent.",
+        "Quickly squat a short distance, flexing the hips and knees, and immediately extend to jump for maximum vertical height.",
+        "As you go up, tuck your heels by flexing the knees, attempting to touch the buttocks.",
+        "Finish the motion by landing with the knees only partially bent, using your legs to absorb the impact."
+      ],
+      "category": "plyometrics",
+      "images": [
+        "Double_Leg_Butt_Kick/0.jpg",
+        "Double_Leg_Butt_Kick/1.jpg"
+      ],
+      "id": "Double_Leg_Butt_Kick",
+      "source": "free-exercise-db",
+      "intensity": 7.2,
+      "signalProfile": "impact",
+      "tags": [
+        "plyometric",
+        "high-impact"
+      ],
+      "adaptsDownTo": "adapt_butt_kicks",
+      "substituteWith": "adapt_high_knee_march",
+      "expectedCadence": 36,
+      "family": "butt-kick",
+      "cue": "Both heels up, soft landing"
+    },
+    "Freehand_Jump_Squat": {
+      "name": "Freehand Jump Squat",
+      "force": "push",
+      "level": "intermediate",
+      "mechanic": "compound",
+      "equipment": "body only",
+      "primaryMuscles": [
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings"
+      ],
+      "instructions": [
+        "Cross your arms over your chest.",
+        "With your head up and your back straight, position your feet at shoulder width.",
+        "Keeping your back straight and chest up, squat down as you inhale until your upper thighs are parallel, or lower, to the floor.",
+        "Now pressing mainly with the ball of your feet, jump straight up in the air as high as possible, using the thighs like springs. Exhale during this portion of the movement.",
+        "When you touch the floor again, immediately squat down and jump again.",
+        "Repeat for the recommended amount of repetitions."
+      ],
+      "category": "strength",
+      "images": [
+        "Freehand_Jump_Squat/0.jpg",
+        "Freehand_Jump_Squat/1.jpg"
+      ],
+      "id": "Freehand_Jump_Squat",
+      "source": "free-exercise-db",
+      "intensity": 7.8,
+      "signalProfile": "impact",
+      "tags": [
+        "plyometric",
+        "high-impact",
+        "deep-knee-flexion"
+      ],
+      "adaptsDownTo": "adapt_squat_calf_raises",
+      "substituteWith": "adapt_high_knee_march",
+      "expectedCadence": 24,
+      "family": "squat",
+      "cue": "Sit back, jump tall, land quietly"
+    },
+    "Lateral_Bound": {
+      "name": "Lateral Bound",
+      "force": "push",
+      "level": "beginner",
+      "mechanic": "compound",
+      "equipment": "body only",
+      "primaryMuscles": [
+        "adductors"
+      ],
+      "secondaryMuscles": [
+        "abductors",
+        "calves",
+        "glutes",
+        "hamstrings",
+        "quadriceps"
+      ],
+      "instructions": [
+        "Assume a half squat position facing 90 degrees from your direction of travel. This will be your starting position.",
+        "Allow your lead leg to do a countermovement inward as you shift your weight to the outside leg.",
+        "Immediately push off and extend, attempting to bound to the side as far as possible.",
+        "Upon landing, immediately push off in the opposite direction, returning to your original start position.",
+        "Continue back and forth for several repetitions."
+      ],
+      "category": "plyometrics",
+      "images": [
+        "Lateral_Bound/0.jpg",
+        "Lateral_Bound/1.jpg"
+      ],
+      "id": "Lateral_Bound",
+      "source": "free-exercise-db",
+      "intensity": 7.4,
+      "signalProfile": "impact",
+      "tags": [
+        "plyometric",
+        "high-impact",
+        "single-leg"
+      ],
+      "adaptsDownTo": "adapt_skater_hops",
+      "substituteWith": "adapt_high_knee_march",
+      "expectedCadence": 30,
+      "family": "lateral",
+      "cue": "Stick each landing before the next"
+    },
+    "Mountain_Climbers": {
+      "name": "Mountain Climbers",
+      "force": "pull",
+      "level": "beginner",
+      "mechanic": "compound",
+      "equipment": null,
+      "primaryMuscles": [
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "chest",
+        "hamstrings",
+        "shoulders"
+      ],
+      "instructions": [
+        "Begin in a pushup position, with your weight supported by your hands and toes. Flexing the knee and hip, bring one leg until the knee is approximately under the hip. This will be your starting position.",
+        "Explosively reverse the positions of your legs, extending the bent leg until the leg is straight and supported by the toe, and bringing the other foot up with the hip and knee flexed. Repeat in an alternating fashion for 20-30 seconds."
+      ],
+      "category": "plyometrics",
+      "images": [
+        "Mountain_Climbers/0.jpg",
+        "Mountain_Climbers/1.jpg"
+      ],
+      "id": "Mountain_Climbers",
+      "source": "free-exercise-db",
+      "intensity": 7,
+      "signalProfile": "oscillation",
+      "tags": [
+        "plyometric",
+        "prone",
+        "wrist-loading"
+      ],
+      "adaptsDownTo": "adapt_slow_climbers",
+      "substituteWith": "adapt_high_knee_march",
+      "expectedCadence": 110,
+      "family": "climber",
+      "cue": "Hips level, knees driving"
+    },
+    "Split_Jump": {
+      "name": "Split Jump",
+      "force": "push",
+      "level": "beginner",
+      "mechanic": "compound",
+      "equipment": "body only",
+      "primaryMuscles": [
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings"
+      ],
+      "instructions": [
+        "Assume a lunge stance position with one foot forward with the knee bent, and the rear knee nearly touching the ground.",
+        "Ensure that the front knee is over the midline of the foot.",
+        "Extending through both legs, jump as high as possible, swinging your arms to gain lift.",
+        "As you jump, bring your feet together, and move them back to their initial positions as you land.",
+        "Absorb the impact by reverting back to the starting position."
+      ],
+      "category": "plyometrics",
+      "images": [
+        "Split_Jump/0.jpg",
+        "Split_Jump/1.jpg"
+      ],
+      "id": "Split_Jump",
+      "source": "free-exercise-db",
+      "intensity": 8,
+      "signalProfile": "impact",
+      "tags": [
+        "plyometric",
+        "high-impact",
+        "deep-knee-flexion",
+        "single-leg"
+      ],
+      "adaptsDownTo": "adapt_alternating_reverse_lunge",
+      "substituteWith": "adapt_squat_calf_raises",
+      "expectedCadence": 26,
+      "family": "lunge",
+      "cue": "Switch in the air, land balanced"
+    },
+    "Star_Jump": {
+      "name": "Star Jump",
+      "force": "push",
+      "level": "beginner",
+      "mechanic": "compound",
+      "equipment": "body only",
+      "primaryMuscles": [
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings",
+        "shoulders"
+      ],
+      "instructions": [
+        "Begin in a relaxed stance with your feet shoulder width apart and hold your arms close to the body.",
+        "To initiate the move, squat down halfway and explode back up as high as possible. Fully extend your entire body, spreading your legs and arms away from the body.",
+        "As you land, bring your limbs back in and absorb your impact through the legs."
+      ],
+      "category": "plyometrics",
+      "images": [
+        "Star_Jump/0.jpg",
+        "Star_Jump/1.jpg"
+      ],
+      "id": "Star_Jump",
+      "source": "free-exercise-db",
+      "intensity": 7.6,
+      "signalProfile": "impact",
+      "tags": [
+        "plyometric",
+        "high-impact",
+        "overhead"
+      ],
+      "adaptsDownTo": "adapt_jumping_jacks",
+      "substituteWith": "adapt_standing_march",
+      "expectedCadence": 24,
+      "family": "jacks",
+      "cue": "Explode up, land soft and quiet"
+    },
+    "adapt_alternating_reverse_lunge": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_alternating_reverse_lunge",
+      "name": "Alternating Reverse Lunges",
+      "level": "beginner",
+      "category": "strength",
+      "primaryMuscles": [
+        "quadriceps",
+        "glutes"
+      ],
+      "secondaryMuscles": [
+        "hamstrings",
+        "calves"
+      ],
+      "instructions": [
+        "Step one foot back and lower into a lunge.",
+        "Push through the front foot to return to standing.",
+        "Alternate legs."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "deep-knee-flexion",
+        "single-leg"
+      ],
+      "family": "lunge",
+      "intensity": 4.8,
+      "signalProfile": "sustained",
+      "expectedCadence": 22,
+      "adaptsDownTo": "adapt_reverse_toe_taps",
+      "substituteWith": "adapt_squat_calf_raises",
+      "cue": "Step back, lower, drive up"
+    },
+    "adapt_boxer_shuffle": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_boxer_shuffle",
+      "name": "Boxer Shuffle",
+      "level": "beginner",
+      "category": "plyometrics",
+      "primaryMuscles": [
+        "calves",
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "quadriceps",
+        "chest"
+      ],
+      "instructions": [
+        "Bounce lightly from foot to foot on the balls of your feet.",
+        "Throw quick straight punches as you move.",
+        "Keep your guard up between punches."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "plyometric"
+      ],
+      "family": "boxing",
+      "intensity": 5.8,
+      "signalProfile": "impact",
+      "expectedCadence": 150,
+      "adaptsDownTo": "adapt_step_punch",
+      "substituteWith": "adapt_side_step_touch",
+      "cue": "Light bounce, fast hands"
+    },
+    "adapt_burpees": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_burpees",
+      "name": "Burpees",
+      "level": "intermediate",
+      "category": "plyometrics",
+      "primaryMuscles": [
+        "quadriceps",
+        "chest"
+      ],
+      "secondaryMuscles": [
+        "shoulders",
+        "triceps",
+        "abdominals",
+        "glutes"
+      ],
+      "instructions": [
+        "Squat down and place your hands on the floor.",
+        "Jump your feet back to a plank and do one push-up.",
+        "Jump your feet back in and jump up with arms overhead."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "plyometric",
+        "overhead",
+        "high-impact",
+        "prone",
+        "wrist-loading",
+        "deep-knee-flexion"
+      ],
+      "family": "burpee",
+      "intensity": 8.6,
+      "signalProfile": "impact",
+      "expectedCadence": 12,
+      "adaptsDownTo": "adapt_squat_thrusts",
+      "substituteWith": "adapt_squat_calf_raises",
+      "cue": "Smooth, not rushed — every rep counts"
+    },
+    "adapt_butt_kick_march": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_butt_kick_march",
+      "name": "Butt Kick March",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "hamstrings"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes"
+      ],
+      "instructions": [
+        "March in place, curling each heel up behind you.",
+        "Keep one foot on the floor at all times."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [],
+      "family": "butt-kick",
+      "intensity": 3,
+      "signalProfile": "oscillation",
+      "expectedCadence": 70,
+      "adaptsDownTo": null,
+      "substituteWith": "adapt_standing_march",
+      "cue": "Curl and place, steady pace"
+    },
+    "adapt_butt_kicks": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_butt_kicks",
+      "name": "Butt Kicks",
+      "level": "beginner",
+      "category": "plyometrics",
+      "primaryMuscles": [
+        "hamstrings",
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "calves"
+      ],
+      "instructions": [
+        "Jog in place, flicking each heel up toward your glutes.",
+        "Stay light and quick on the balls of your feet."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "plyometric"
+      ],
+      "family": "butt-kick",
+      "intensity": 5.8,
+      "signalProfile": "impact",
+      "expectedCadence": 140,
+      "adaptsDownTo": "adapt_butt_kick_march",
+      "substituteWith": "adapt_high_knee_march",
+      "cue": "Heels up, light feet"
+    },
+    "adapt_high_knee_march": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_high_knee_march",
+      "name": "High Knee March",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "quadriceps",
+        "abdominals"
+      ],
+      "secondaryMuscles": [
+        "glutes"
+      ],
+      "instructions": [
+        "March in place, lifting each knee toward hip height.",
+        "Keep one foot on the floor at all times.",
+        "Swing the opposite arm with each knee."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [],
+      "family": "knee-drive",
+      "intensity": 4,
+      "signalProfile": "oscillation",
+      "expectedCadence": 90,
+      "adaptsDownTo": "adapt_standing_march",
+      "substituteWith": "adapt_side_step_touch",
+      "cue": "Lift and place, no rush"
+    },
+    "adapt_high_knees": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_high_knees",
+      "name": "High Knees",
+      "level": "intermediate",
+      "category": "plyometrics",
+      "primaryMuscles": [
+        "quadriceps",
+        "abdominals"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes"
+      ],
+      "instructions": [
+        "Run in place, driving each knee up toward hip height.",
+        "Stay light on the balls of your feet.",
+        "Pump your arms in time with your legs."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "plyometric"
+      ],
+      "family": "knee-drive",
+      "intensity": 6.8,
+      "signalProfile": "impact",
+      "expectedCadence": 140,
+      "adaptsDownTo": "adapt_high_knee_march",
+      "substituteWith": "adapt_side_step_touch",
+      "cue": "Quick feet, knees up, stay light"
+    },
+    "adapt_jumping_jacks": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_jumping_jacks",
+      "name": "Jumping Jacks",
+      "level": "beginner",
+      "category": "plyometrics",
+      "primaryMuscles": [
+        "quadriceps",
+        "calves"
+      ],
+      "secondaryMuscles": [
+        "shoulders",
+        "glutes",
+        "abductors"
+      ],
+      "instructions": [
+        "Stand tall with your feet together and arms by your sides.",
+        "Jump your feet out wide as your arms sweep up overhead.",
+        "Jump back to the start as your arms come down.",
+        "Keep your knees soft on every landing."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "plyometric",
+        "overhead"
+      ],
+      "family": "jacks",
+      "intensity": 6.2,
+      "signalProfile": "impact",
+      "expectedCadence": 70,
+      "adaptsDownTo": "adapt_step_jacks",
+      "substituteWith": "adapt_standing_march",
+      "cue": "Land softly, keep a steady rhythm"
+    },
+    "adapt_reverse_toe_taps": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_reverse_toe_taps",
+      "name": "Reverse Toe Taps",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "quadriceps",
+        "glutes"
+      ],
+      "secondaryMuscles": [
+        "calves"
+      ],
+      "instructions": [
+        "Step one foot back and tap the toe lightly behind you.",
+        "Bring it back in and switch sides.",
+        "Only a shallow bend in the front knee."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [],
+      "family": "lunge",
+      "intensity": 2.9,
+      "signalProfile": "oscillation",
+      "expectedCadence": 40,
+      "adaptsDownTo": null,
+      "substituteWith": "adapt_side_step_touch",
+      "cue": "Tap back, stay tall"
+    },
+    "adapt_side_step_touch": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_side_step_touch",
+      "name": "Side Step Touch",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "abductors",
+        "glutes"
+      ],
+      "secondaryMuscles": [
+        "calves"
+      ],
+      "instructions": [
+        "Step to one side and bring the other foot in to touch.",
+        "Step back the other way.",
+        "Add an easy arm swing if it feels good."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [],
+      "family": "lateral",
+      "intensity": 2.4,
+      "signalProfile": "oscillation",
+      "expectedCadence": 56,
+      "adaptsDownTo": null,
+      "substituteWith": "adapt_standing_march",
+      "cue": "Step, touch, and breathe"
+    },
+    "adapt_skater_hops": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_skater_hops",
+      "name": "Skater Hops",
+      "level": "intermediate",
+      "category": "plyometrics",
+      "primaryMuscles": [
+        "glutes",
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "abductors",
+        "calves"
+      ],
+      "instructions": [
+        "Hop sideways onto one foot, sweeping the other leg behind you.",
+        "Land softly and hop back the other way.",
+        "Let your arms swing across your body."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "plyometric",
+        "single-leg"
+      ],
+      "family": "lateral",
+      "intensity": 6,
+      "signalProfile": "impact",
+      "expectedCadence": 50,
+      "adaptsDownTo": "adapt_skater_steps",
+      "substituteWith": "adapt_high_knee_march",
+      "cue": "Soft landings, side to side"
+    },
+    "adapt_skater_steps": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_skater_steps",
+      "name": "Skater Steps",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "glutes",
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "abductors"
+      ],
+      "instructions": [
+        "Step wide to one side and cross the other foot lightly behind.",
+        "Step back the other way and repeat.",
+        "Keep both feet in contact with the floor."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [],
+      "family": "lateral",
+      "intensity": 3.8,
+      "signalProfile": "oscillation",
+      "expectedCadence": 40,
+      "adaptsDownTo": "adapt_side_step_touch",
+      "substituteWith": "adapt_high_knee_march",
+      "cue": "Same movement, feet on the floor"
+    },
+    "adapt_slow_climbers": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_slow_climbers",
+      "name": "Slow Mountain Climbers",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "abdominals",
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "shoulders",
+        "chest"
+      ],
+      "instructions": [
+        "Start in a high plank with hands under shoulders.",
+        "Step one knee in toward your chest, then return it.",
+        "Alternate legs at a controlled pace."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "prone",
+        "wrist-loading"
+      ],
+      "family": "climber",
+      "intensity": 4.8,
+      "signalProfile": "oscillation",
+      "expectedCadence": 50,
+      "adaptsDownTo": "adapt_standing_climbers",
+      "substituteWith": "adapt_high_knee_march",
+      "cue": "Hips level, one knee at a time"
+    },
+    "adapt_squat_calf_raises": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_squat_calf_raises",
+      "name": "Squat to Calf Raise",
+      "level": "beginner",
+      "category": "strength",
+      "primaryMuscles": [
+        "quadriceps",
+        "calves"
+      ],
+      "secondaryMuscles": [
+        "glutes"
+      ],
+      "instructions": [
+        "Sit back into a squat as far as is comfortable.",
+        "Drive up to standing and rise onto your toes.",
+        "Lower your heels and go straight into the next squat."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "deep-knee-flexion"
+      ],
+      "family": "squat",
+      "intensity": 4.6,
+      "signalProfile": "oscillation",
+      "expectedCadence": 20,
+      "adaptsDownTo": "Bodyweight_Squat",
+      "substituteWith": "adapt_high_knee_march",
+      "cue": "Sit back, rise up, heels down"
+    },
+    "adapt_squat_thrusts": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_squat_thrusts",
+      "name": "Squat Thrusts",
+      "level": "beginner",
+      "category": "plyometrics",
+      "primaryMuscles": [
+        "quadriceps",
+        "abdominals"
+      ],
+      "secondaryMuscles": [
+        "shoulders",
+        "glutes"
+      ],
+      "instructions": [
+        "Squat down and place your hands on the floor.",
+        "Jump your feet back to a plank, then jump them back in.",
+        "Stand up tall. No push-up, no jump at the top."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "plyometric",
+        "deep-knee-flexion",
+        "prone",
+        "wrist-loading"
+      ],
+      "family": "burpee",
+      "intensity": 6.9,
+      "signalProfile": "impact",
+      "expectedCadence": 18,
+      "adaptsDownTo": "adapt_step_back_burpees",
+      "substituteWith": "adapt_squat_calf_raises",
+      "cue": "Hands down, feet back, stand tall"
+    },
+    "adapt_standing_climbers": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_standing_climbers",
+      "name": "Standing Climbers",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "abdominals",
+        "quadriceps"
+      ],
+      "secondaryMuscles": [
+        "shoulders"
+      ],
+      "instructions": [
+        "Stand tall and reach both arms overhead.",
+        "Drive one knee up as the opposite arm pulls down.",
+        "Alternate sides in a climbing rhythm."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "overhead"
+      ],
+      "family": "climber",
+      "intensity": 3.2,
+      "signalProfile": "oscillation",
+      "expectedCadence": 70,
+      "adaptsDownTo": null,
+      "substituteWith": "adapt_side_step_touch",
+      "cue": "Reach and pull, knee to hand"
+    },
+    "adapt_standing_march": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_standing_march",
+      "name": "Standing March",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "quadriceps",
+        "calves"
+      ],
+      "secondaryMuscles": [
+        "glutes"
+      ],
+      "instructions": [
+        "March in place at a comfortable height.",
+        "Keep your chest up and your arms swinging."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [],
+      "family": "knee-drive",
+      "intensity": 2.6,
+      "signalProfile": "oscillation",
+      "expectedCadence": 100,
+      "adaptsDownTo": null,
+      "substituteWith": "adapt_side_step_touch",
+      "cue": "Steady steps, easy breathing"
+    },
+    "adapt_standing_punches": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_standing_punches",
+      "name": "Standing Punches",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "chest",
+        "triceps",
+        "abdominals"
+      ],
+      "instructions": [
+        "Stand with feet planted and knees soft.",
+        "Throw alternating straight punches at a steady pace."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [],
+      "family": "boxing",
+      "intensity": 2.6,
+      "signalProfile": "sustained",
+      "expectedCadence": 90,
+      "adaptsDownTo": null,
+      "substituteWith": "adapt_standing_march",
+      "cue": "Steady punches, relaxed shoulders"
+    },
+    "adapt_step_back_burpees": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_step_back_burpees",
+      "name": "Step-Back Burpees",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "quadriceps",
+        "abdominals"
+      ],
+      "secondaryMuscles": [
+        "shoulders"
+      ],
+      "instructions": [
+        "Squat down and place your hands on the floor.",
+        "Step one foot back, then the other, into a plank.",
+        "Step them back in one at a time and stand up."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "plyometric",
+        "prone",
+        "wrist-loading",
+        "deep-knee-flexion"
+      ],
+      "family": "burpee",
+      "intensity": 4.6,
+      "signalProfile": "oscillation",
+      "expectedCadence": 10,
+      "adaptsDownTo": null,
+      "substituteWith": "adapt_squat_calf_raises",
+      "cue": "Step it out, step it in"
+    },
+    "adapt_step_jacks": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_step_jacks",
+      "name": "Step Jacks",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "quadriceps",
+        "abductors"
+      ],
+      "secondaryMuscles": [
+        "shoulders",
+        "calves"
+      ],
+      "instructions": [
+        "Stand tall with your feet together.",
+        "Step one foot out to the side as both arms sweep up overhead.",
+        "Step back in as your arms come down, then switch sides."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "overhead"
+      ],
+      "family": "jacks",
+      "intensity": 3.8,
+      "signalProfile": "oscillation",
+      "expectedCadence": 50,
+      "adaptsDownTo": "adapt_toe_tap_jacks",
+      "substituteWith": "adapt_standing_march",
+      "cue": "Step wide and reach tall, one side at a time"
+    },
+    "adapt_step_punch": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_step_punch",
+      "name": "Step and Punch",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "shoulders",
+        "calves"
+      ],
+      "secondaryMuscles": [
+        "chest",
+        "quadriceps"
+      ],
+      "instructions": [
+        "Step side to side at an easy rhythm.",
+        "Throw one straight punch with each step."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [],
+      "family": "boxing",
+      "intensity": 3.6,
+      "signalProfile": "oscillation",
+      "expectedCadence": 60,
+      "adaptsDownTo": "adapt_standing_punches",
+      "substituteWith": "adapt_side_step_touch",
+      "cue": "Step, punch, reset"
+    },
+    "adapt_toe_tap_jacks": {
+      "force": "push",
+      "mechanic": "compound",
+      "id": "adapt_toe_tap_jacks",
+      "name": "Toe-Tap Jacks",
+      "level": "beginner",
+      "category": "cardio",
+      "primaryMuscles": [
+        "abductors",
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "calves"
+      ],
+      "instructions": [
+        "Stand tall with your weight on one foot.",
+        "Tap the other toe out to the side as your arms rise overhead.",
+        "Bring it back in as your arms lower, then switch sides."
+      ],
+      "equipment": "body only",
+      "images": [],
+      "source": "adapt-home-pack",
+      "tags": [
+        "overhead"
+      ],
+      "family": "jacks",
+      "intensity": 2.8,
+      "signalProfile": "oscillation",
+      "expectedCadence": 44,
+      "adaptsDownTo": null,
+      "substituteWith": "adapt_standing_march",
+      "cue": "Small taps, big reach"
+    }
+  }
+}

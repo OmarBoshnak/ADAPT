@@ -1,0 +1,15 @@
+{
+  "name": "@adapt/sim",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Headless ADAPT session simulator. Runs raw sensor samples through the real estimators and reducer, and fails if the two-session demo arc breaks.",
+  "type": "module",
+  "bin": { "adapt-sim": "./dist/cli.js" },
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "dependencies": {
+    "@adapt/core": "*",
+    "@adapt/data": "*"
+  }
+}

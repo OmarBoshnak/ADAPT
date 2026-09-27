@@ -1,0 +1,15 @@
+{
+  "name": "@adapt/build-graph",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Builds the ADAPT adaptation graph from Free Exercise DB, the home pack and the pool curation. Fails if any ladder is broken.",
+  "type": "module",
+  "bin": { "adapt-build-graph": "./dist/cli.js" },
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "dependencies": {
+    "@adapt/core": "*",
+    "@adapt/data": "*"
+  }
+}

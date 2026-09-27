@@ -34,14 +34,29 @@ that may or may not satisfy a reviewer.
 
 ### react-native-tvos — 🚧
 
-**What we used it for.** The whole TV UI, pinned at `0.87.1-1`.
+**What we used it for.** The Fire OS fallback app, pinned at `0.83.0-0` — the newest release with a
+matching project template (FL-006).
 
 *(fill in during Phase 3: focus engine, `TVFocusGuideView`, `useTVEventHandler`, how well the
 10-foot focus model held up.)*
 
-### Vega OS / Vega Developer Tools — ⬜
+### Vega OS / Vega Developer Tools — 🚧 adopted as the primary TV target
 
-Evaluated, not yet adopted. Initial documentation feedback in FL-003.
+**What we are using it for.** The TV app. We moved from Fire OS to Vega because the Vega Virtual
+Device is the only simulator Amazon ships for Fire TV — the Android TV AVD recommended for Fire OS
+is not obviously what the hackathon rules mean by "the Fire TV/Vega simulator" (FL-002).
+
+**What worked well.** The installer handles Intel Macs explicitly, and the Vega Virtual Device
+booted in 36 seconds on a 2018 Intel i7.
+Every React Native library we need is already ported: `react-native-svg`, `reanimated`,
+`async-storage`, `gesture-handler`, `safe-area-context`. The focus API is a superset of
+react-native-tvos (`trapFocus`, `FocusManager`, `Navigable`), so D-pad work transfers.
+
+**What needs work.** The installer and `vega sdk install` hang or half-fail in non-interactive
+shells, and the `--non-interactive` flag that fixes it is undocumented in the install guide
+(FL-005). The API overview omits whole capability categories such as networking (FL-003).
+
+**Onboarding.** *(fill in during Phase 3)*
 
 ---
 

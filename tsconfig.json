@@ -1,5 +1,18 @@
 {
   "files": [],
   "comment": "Solution file. Each phase adds its package here as it is scaffolded.",
-  "references": [{ "path": "./packages/core" }, { "path": "./packages/data" }]
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/data"
+    },
+    {
+      "path": "./tools/build-graph"
+    },
+    {
+      "path": "./tools/sim"
+    }
+  ]
 }

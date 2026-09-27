@@ -36,8 +36,8 @@ export default tseslint.config(
       '**/coverage/**',
       'packages/data/vendor/**',
       'packages/data/dist/**',
-      'apps/tv/android/**',
-      'apps/tv/ios/**',
+      'apps/tv-fireos/android/**',
+      'apps/tv-fireos/ios/**',
       'apps/phone/.expo/**',
       // React Native ships its build config as CommonJS scripts. They are tooling,
       // not product code, and linting them under the ESM config is pure noise.

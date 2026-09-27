@@ -126,6 +126,64 @@ produces a plausible-looking but wrong layout, and it is three lines of document
 
 ---
 
+## FL-005 — Vega SDK installer hangs silently in a non-interactive shell
+
+- **Date:** 2026-09-22
+- **Platform/tool:** Vega Developer Tools — `get_vvm.sh` installer and `vega sdk install`
+- **Severity:** major
+
+**Task attempted.** Install the Vega SDK from a scripted, non-interactive shell — the way CI,
+provisioning scripts and AI coding agents run commands.
+
+**Steps taken.** Ran the documented one-line installer, then `vega sdk install`.
+
+**Expected.** A completed install, or a clear failure naming the missing input.
+
+**Actual.** Two separate problems. The installer's setup step prompted for an SDK directory and,
+receiving no terminal, failed with `failed to get SDK path: failed to read input: EOF` — after the
+CLI itself had already installed, leaving a half-configured state. Then `vega sdk install` produced
+**zero bytes of output for several minutes** while blocked on an invisible prompt, indistinguishable
+from a slow download. The `--non-interactive` flag that fixes both exists, but is only discoverable
+through `vega sdk install --help`; the install guide never mentions it.
+
+**Workaround.** `vega sdk install --non-interactive`, which then completed cleanly.
+
+**Suggestion.** Detect a non-TTY stdin and either default to non-interactive mode or fail
+immediately with "stdin is not a terminal — re-run with --non-interactive". Document the flag in the
+install guide. A silent hang is the worst possible failure mode: it costs the time it takes someone
+to decide it is not just slow.
+
+**What worked well, for balance.** Once installed, it was excellent. The installer handles Intel
+Macs explicitly (`Darwin x86_64`), and the Vega Virtual Device booted in **36 seconds** on a 2018
+Intel i7.
+
+---
+
+## FL-006 — The react-native-tvos project template lags the runtime by four minor versions
+
+- **Date:** 2026-09-21
+- **Platform/tool:** Fire TV — React Native for Fire OS (react-native-tvos, as recommended by Amazon's docs)
+- **Severity:** minor
+
+**Task attempted.** Scaffold a Fire OS app on the current react-native-tvos release, `0.87.1-1`.
+
+**Steps taken.** `npx @react-native-community/cli init --version npm:react-native-tvos@0.87.1-1`.
+
+**Expected.** A project on 0.87.
+
+**Actual.** `Unable to find a template for react-native version`. The TV template is a separate
+package, `@react-native-tvos/template-tv`, whose newest release is `0.83.0-0`. The runtime and the
+template are four minor versions apart, and the Fire TV getting-started guide does not name the
+template package at all.
+
+**Workaround.** Pinned the matched `0.83` pair rather than mixing a 0.83 template with a 0.87
+runtime, which is a reliable source of native build errors.
+
+**Suggestion.** Name `@react-native-tvos/template-tv` in the Fire TV React Native guide, with the
+exact `init` command, and note which runtime version it currently pairs with.
+
+---
+
 <!--
 Template for new entries:
 
