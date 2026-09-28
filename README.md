@@ -33,9 +33,9 @@ So there are two distinct moments, and both are visible on screen:
 | Phase | Scope | State |
 | --- | --- | --- |
 | 0 | Monorepo, dataset, TV + phone scaffolds, emulator, Vega SDK | ✅ complete |
-| 1 | The engine: strain, graph, signal, learning, simulator | ✅ complete — 169 tests |
-| 2 | Relay + wire protocol | ⬜ next |
-| 3 | TV app — 13 screens | ⬜ |
+| 1 | The engine: strain, graph, signal, learning, simulator | ✅ complete |
+| 2 | Relay, wire protocol, TV-side session controller | ✅ complete — 231 tests |
+| 3 | TV app — 13 screens | ⬜ next |
 | 4 | Phone companion | ⬜ |
 | 5 | Live integration & tuning | ⬜ |
 | 6 | AWS coach (Bedrock / AgentCore / Strands) | ⬜ |
@@ -200,10 +200,45 @@ Needs a real device: the whole point is the accelerometer, and the simulator has
 
 ## Networking, and the one thing that will confuse you
 
-The relay runs on your development machine. The two clients reach it at **different addresses**:
+The relay runs on your development machine. The TV and the phone reach it at **different
+addresses**, and the relay prints all of them when it starts:
 
-| Client | Address | Why |
+| Client | Address | Verified |
 | --- | --- | --- |
+| TV — Vega Virtual Device | `ws://10.0.2.2:8787/ws` | ✅ from inside the device; no setup needed |
+| TV — Android TV emulator (Fire OS fallback) | `ws://10.0.2.2:8787/ws` | same alias |
+| TV — physical Fire TV over USB | `ws://127.0.0.1:8787/ws` | ✅ after `vega device start-port-forwarding --port 8787 --forward false` |
+| Phone on the same Wi-Fi | `ws://<your-lan-ip>:8787/ws` | |
+
+`10.0.2.2` is QEMU's alias for the machine running the emulator. The Vega Virtual Device is QEMU
+underneath, so one address works for both TV targets.
+
+If the relay is unreachable, or the phone drops mid-workout, the TV carries on solo without
+pausing — a Fire TV and a remote alone is a complete product, and the phone only adds automatic
+adaptation on top of it.
+
+### Run the whole loop without a TV or a phone
+
+Three terminals:
+
+```bash
+npm run relay
+```
+
+```bash
+npm run console-tv
+```
+
+```bash
+npm run fake-sensor -- --code <the code console-tv shows>
+```
+
+`console-tv` runs the same `LiveSession` class the Vega app renders, so pairing, the per-exercise
+sequence numbers, solo fallback and learning from a spoken "easier" are the real behaviour, printed
+instead of drawn. In `fake-sensor`, press `e` to say "easier" and `d` to drop off the network for
+eight seconds. Both take `--speed 6` to run a 12-minute session in two.
+
+--- | --- | --- |
 | TV (Android emulator) | `ws://10.0.2.2:8787` | `10.0.2.2` is the AVD's alias for the host loopback |
 | TV (real Fire TV) | `ws://<your-lan-ip>:8787` | |
 | Phone (real iPhone) | `ws://<your-lan-ip>:8787` | over the same WiFi |

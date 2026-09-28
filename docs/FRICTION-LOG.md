@@ -184,6 +184,34 @@ exact `init` command, and note which runtime version it currently pairs with.
 
 ---
 
+## FL-007 — How the Vega Virtual Device reaches the development machine is not documented
+
+- **Date:** 2026-09-28
+- **Platform/tool:** Vega Virtual Device — networking
+- **Severity:** minor
+
+**Task attempted.** Point the TV app at a WebSocket relay running on the development machine — the
+first thing any app with a companion device or a local backend needs.
+
+**Steps taken.** Looked for the host address in the *Run your app on Vega Virtual Device or Fire TV
+Stick* guide. Found nothing, so tested empirically: `vega device run-cmd` with `curl` against
+`10.0.2.2` (QEMU's conventional host alias), then `vega device start-port-forwarding --forward
+false` against `127.0.0.1`.
+
+**Expected.** One sentence in the run guide naming the address.
+
+**Actual.** Both work — `10.0.2.2` with no setup, `127.0.0.1` after reverse forwarding — but
+neither is mentioned in the run guide, so each developer has to rediscover it.
+
+**What worked well.** Verifying it was genuinely pleasant: the device image ships `curl`, `wget` and
+`busybox`, and `run-cmd` plus reverse port forwarding (Vega's `adb reverse`) made it a two-minute
+check rather than a guessing game.
+
+**Suggestion.** Add a "Reaching your development machine" note to the run guide: `10.0.2.2` from the
+Virtual Device, reverse port forwarding for a device over USB, and the machine's LAN IP for Wi-Fi.
+
+---
+
 <!--
 Template for new entries:
 

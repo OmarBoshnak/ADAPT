@@ -29,6 +29,17 @@ export const TARGET_CROSSING_FRACTION = 0.65;
 /** Seeded cost jitter when choosing each slot, in intensity points. */
 export const VARIETY = 0.9;
 
+/**
+ * The hardest a plan may reach for, by stated energy.
+ *
+ * Without this, a short session cannot reach the threshold two-thirds of the way through no
+ * matter what it picks, so the search gave up at the hardest movements in the pool — a
+ * 4-minute medium session came out as High Knees → Burpees → Split Jump. That is exactly
+ * the session behind TV-10's primary button, "Another 4 minutes", offered to someone who has
+ * just finished. A short session should be the same kind of work, just less of it.
+ */
+export const ENERGY_CEILING: Record<Energy, number> = { low: 5.5, medium: 7.0, high: 10 };
+
 const TITLE_NOUN: Record<Energy, string> = { low: 'Easy Cardio', medium: 'Cardio Reset', high: 'Cardio Push' };
 
 export function exerciseCount(durationMin: number): number {
@@ -124,7 +135,7 @@ export function generatePlan(input: GenerateInput): SessionPlan {
   const targetCrossing = TARGET_CROSSING_FRACTION * totalSec;
 
   const draft = (targetIntensity: number): Draft => {
-    const ids = sequence(candidates, n, targetIntensity, seed);
+    const ids = sequence(candidates, n, targetIntensity, seed, ceiling);
     const blocks: Block[] = [];
     ids.forEach((id, i) => {
       const ex = getExercise(graph, id);
@@ -136,8 +147,9 @@ export function generatePlan(input: GenerateInput): SessionPlan {
 
   // Binary search the target mean intensity until the plan first crosses near the target
   // point. The sequence is discrete, so keep the closest draft seen rather than the last.
+  const ceiling = ENERGY_CEILING[energy];
   const lo0 = candidates[0]?.intensity ?? 0;
-  const hi0 = candidates[candidates.length - 1]?.intensity ?? 10;
+  const hi0 = Math.max(lo0, Math.min(candidates[candidates.length - 1]?.intensity ?? 10, ceiling));
   let lo = lo0;
   let hi = hi0;
   let best = draft(hi0);
@@ -179,7 +191,7 @@ export function generatePlan(input: GenerateInput): SessionPlan {
  * to the target, avoiding back-to-back movements from the same family and spreading
  * repeats apart when a restricted profile leaves a small pool.
  */
-function sequence(candidates: Exercise[], n: number, target: number, seed: number): string[] {
+function sequence(candidates: Exercise[], n: number, target: number, seed: number, ceiling: number): string[] {
   const rng = createRng(seed);
   const used = new Map<string, number>();
   const ids: string[] = [];
@@ -193,6 +205,9 @@ function sequence(candidates: Exercise[], n: number, target: number, seed: numbe
       let cost = Math.abs(ex.intensity - aim);
       if (prev && ex.id === prev.id) cost += 10;
       if (prev && ex.family === prev.family) cost += 2;
+      // A penalty, not a filter: every candidate still draws from the seeded generator, so
+      // plans that never reached above the ceiling are unchanged by it.
+      if (ex.intensity > ceiling) cost += 5;
       cost += 1.5 * (used.get(ex.id) ?? 0);
       // Seeded variety. Large enough that any movement within about one intensity point of the
       // target can win a slot, so consecutive sessions genuinely differ ("Generated fresh" on

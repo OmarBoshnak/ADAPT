@@ -1,0 +1,23 @@
+{
+  "name": "@adapt/relay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ADAPT pairing relay. Rooms keyed by a 4-digit code: the TV is the display, the phone is the sensor. Validates every message against the shared protocol and forwards only what each role may send.",
+  "type": "module",
+  "bin": {
+    "adapt-relay": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "start": "node dist/main.js",
+    "dev": "tsc --build && node dist/main.js"
+  },
+  "dependencies": {
+    "@adapt/core": "*",
+    "@fastify/websocket": "^11.3.1",
+    "fastify": "^5.12.5"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}

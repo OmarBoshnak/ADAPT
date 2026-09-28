@@ -9,7 +9,9 @@
     "packages/*",
     "apps/relay",
     "tools/build-graph",
-    "tools/sim"
+    "tools/sim",
+    "tools/fake-sensor",
+    "tools/console-tv"
   ],
   "engines": {
     "node": ">=20"
@@ -25,10 +27,11 @@
     "format:check": "prettier --check .",
     "graph": "tsc --build && node tools/build-graph/dist/cli.js",
     "sim": "tsc --build && node tools/sim/dist/cli.js",
-    "relay": "npm run -w @adapt/relay dev",
-    "fake-sensor": "npm run -w @adapt/fake-sensor start",
+    "relay": "tsc --build && node apps/relay/dist/main.js",
+    "fake-sensor": "tsc --build && node tools/fake-sensor/dist/cli.js",
     "audit:copy": "bash scripts/audit-copy.sh",
-    "verify": "npm run typecheck && npm run lint && npm test && npm run audit:copy"
+    "verify": "npm run typecheck && npm run lint && npm test && npm run audit:copy",
+    "console-tv": "tsc --build && node tools/console-tv/dist/cli.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

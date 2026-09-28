@@ -1,0 +1,10 @@
+{
+  "name": "@adapt/fake-sensor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stands in for the phone: joins the relay as the sensor, follows the TV's exercise announcements, and runs synthetic floor vibration through the real on-device estimator.",
+  "type": "module",
+  "bin": { "adapt-fake-sensor": "./dist/cli.js" },
+  "scripts": { "build": "tsc --build" },
+  "dependencies": { "@adapt/core": "*" }
+}

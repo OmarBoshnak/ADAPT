@@ -6,11 +6,22 @@
     "incremental": false,
     "declaration": false,
     "declarationMap": false,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "paths": {
-      "@adapt/core": ["./packages/core/src/index.ts"],
-      "@adapt/data": ["./packages/data/src/index.ts"]
+      "@adapt/core": [
+        "./packages/core/src/index.ts"
+      ],
+      "@adapt/data": [
+        "./packages/data/src/index.ts"
+      ]
     }
   },
-  "include": ["packages/*/src/**/*.test.ts", "packages/*/src/**/*.fixture.ts"]
+  "include": [
+    "packages/*/src/**/*.test.ts",
+    "packages/*/src/**/*.fixture.ts",
+    "apps/relay/src/**/*.test.ts",
+    "tools/*/src/**/*.test.ts"
+  ]
 }

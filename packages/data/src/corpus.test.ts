@@ -172,3 +172,25 @@ describe('generation on the real pool', () => {
     expect(mean).toBeLessThan(7);
   });
 });
+
+describe('short sessions', () => {
+  it('are the same kind of work, not the hardest movements in the pool', () => {
+    for (let seed = 1; seed <= 25; seed++) {
+      const plan = generatePlan({ graph, profile: profile(), durationMin: 4, energy: 'medium', seed });
+      for (const seg of plan.segments) {
+        const ex = getExercise(graph, seg.exerciseId);
+        expect(ex.intensity, `${ex.name} in a 4-minute medium session (seed ${seed})`).toBeLessThanOrEqual(7);
+      }
+    }
+  });
+
+  it('still allow hard movements when the person says they have the energy', () => {
+    const hard = new Set<string>();
+    for (let seed = 1; seed <= 25; seed++) {
+      for (const seg of generatePlan({ graph, profile: profile(), durationMin: 4, energy: 'high', seed }).segments) {
+        if (getExercise(graph, seg.exerciseId).intensity > 7) hard.add(seg.exerciseId);
+      }
+    }
+    expect(hard.size).toBeGreaterThan(0);
+  });
+});

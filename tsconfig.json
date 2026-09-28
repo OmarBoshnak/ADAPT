@@ -13,6 +13,15 @@
     },
     {
       "path": "./tools/sim"
+    },
+    {
+      "path": "./apps/relay"
+    },
+    {
+      "path": "./tools/fake-sensor"
+    },
+    {
+      "path": "./tools/console-tv"
     }
   ]
 }

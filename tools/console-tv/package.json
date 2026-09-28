@@ -1,0 +1,10 @@
+{
+  "name": "@adapt/console-tv",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Stands in for the TV: runs the same LiveSession the Vega app uses, in a terminal, paired through the relay or solo.",
+  "type": "module",
+  "bin": { "adapt-console-tv": "./dist/cli.js" },
+  "scripts": { "build": "tsc --build" },
+  "dependencies": { "@adapt/core": "*", "@adapt/data": "*" }
+}
