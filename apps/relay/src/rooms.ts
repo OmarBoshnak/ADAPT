@@ -1,29 +1,10 @@
-/**
- * The room registry — every pairing and forwarding rule, with no sockets in sight.
- *
- * A room is one TV and at most one phone, found by a 4-digit code shown on TV-3. The
- * registry is pure logic over a small `Conn` interface, so every rule here is unit-tested
- * without opening a port.
- *
- * Rules, all enforced here:
- *   - The display creates a room and is given its code. The sensor joins by that code.
- *   - One of each role per room. A second phone is refused, unless it holds the resume
- *     token of the seat it is reclaiming after a dropped connection.
- *   - Every message is decoded and validated. Each role may forward only its own message
- *     types (protocol.FORWARDABLE) — a phone cannot push a session, a TV cannot fake a frame.
- *   - Guessing codes is rate-limited per address. Four digits is a pairing convenience on a
- *     home network, not a password; the rate limit keeps it honest.
- *   - The TV's latest exercise and phase are cached and replayed to a phone that joins late,
- *     so it can start measuring immediately.
- *   - Silence past the heartbeat window is a lost connection; the peer is told "lost", which
- *     the TV treats as "carry on solo".
- */
+// One TV and at most one phone per room. Pure logic over `Conn`, so every rule is testable without a port.
+// Codes are a pairing convenience, not a password, so wrong guesses are rate-limited per address.
 
 import { protocol } from '@adapt/core';
 
 export interface Conn {
   readonly id: string;
-  /** Remote address, for rate-limiting code guesses. */
   readonly remote: string;
   send(text: string): void;
   close(code: number, reason: string): void;
@@ -60,15 +41,12 @@ export type RegistryEvent =
 export interface RegistryOptions {
   onEvent?: (event: RegistryEvent) => void;
   now?: () => number;
-  /** Allocates a 4-digit code not currently in use. */
   newCode?: (inUse: (code: string) => boolean) => string;
   newToken?: () => string;
-  /** No inbound traffic for this long and a connection is considered lost. */
   silenceMs?: number;
-  /** How long a room survives its TV disconnecting, waiting for it to come back. */
+  /** How long a room waits for its TV to come back. */
   displayGraceMs?: number;
   maxRooms?: number;
-  /** Wrong codes allowed per address inside `guessWindowMs`. */
   maxGuesses?: number;
   guessWindowMs?: number;
 }
@@ -83,7 +61,7 @@ const other = (r: Role): Role => (r === 'display' ? 'sensor' : 'display');
 
 function defaultCode(inUse: (code: string) => boolean): string {
   for (let i = 0; i < 10_000; i++) {
-    // 1000–9999: no leading zero, so the code on TV-3 never reads as three digits.
+    // No leading zero, so the code never reads as three digits.
     const code = String(1000 + Math.floor(Math.random() * 9000));
     if (!inUse(code)) return code;
   }
@@ -124,11 +102,6 @@ export class RoomRegistry {
     this.guessWindowMs = opts.guessWindowMs ?? 60_000;
   }
 
-  // ---------------------------------------------------------------------------
-  // Inbound
-  // ---------------------------------------------------------------------------
-
-  /** Every text frame from a connection, before or after it has said hello. */
   receive(conn: Conn, raw: string): void {
     const decoded = protocol.decode(raw);
     const binding = this.bindings.get(conn.id);
@@ -162,7 +135,7 @@ export class RoomRegistry {
       return;
     }
 
-    const text = protocol.encode(m); // re-encoded: only validated fields travel on
+    const text = protocol.encode(m);
     if (m.type === 'session.exercise') room.lastExercise = text;
     if (m.type === 'session.state') room.lastState = text;
 
@@ -170,7 +143,6 @@ export class RoomRegistry {
     if (peer) peer.send(text);
   }
 
-  /** The connection closed. `clean` = an intentional close rather than a network failure. */
   disconnect(conn: Conn, clean: boolean): void {
     const binding = this.bindings.get(conn.id);
     this.bindings.delete(conn.id);
@@ -185,11 +157,6 @@ export class RoomRegistry {
     this.notifyPeer(room, binding.role, clean ? 'left' : 'lost');
   }
 
-  // ---------------------------------------------------------------------------
-  // Housekeeping — call every few seconds
-  // ---------------------------------------------------------------------------
-
-  /** Ping every live seat, drop silent ones, and expire rooms whose TV never came back. */
   sweep(): void {
     const now = this.now();
     for (const room of [...this.rooms.values()]) {
@@ -216,7 +183,6 @@ export class RoomRegistry {
     for (const [addr, g] of this.guesses) if (now - g.since > this.guessWindowMs) this.guesses.delete(addr);
   }
 
-  /** Whether this connection has completed its hello. */
   bound(conn: Conn): boolean {
     return this.bindings.has(conn.id);
   }
@@ -227,17 +193,12 @@ export class RoomRegistry {
     return { rooms: this.rooms.size, paired, dropped: this.dropped };
   }
 
-  // ---------------------------------------------------------------------------
-  // Pairing
-  // ---------------------------------------------------------------------------
-
   private hello(conn: Conn, h: protocol.MessageOf<'hello'>): void {
     if (h.role === 'display') return this.helloDisplay(conn, h);
     return this.helloSensor(conn, h);
   }
 
   private helloDisplay(conn: Conn, h: protocol.MessageOf<'hello'>): void {
-    // A returning TV reclaims its room — and its code — with the resume token.
     if (h.resume) {
       for (const room of this.rooms.values()) {
         if (room.display?.resume === h.resume) {
@@ -273,7 +234,7 @@ export class RoomRegistry {
 
     this.seat(conn, room, 'sensor', reclaiming && seat ? seat.resume : this.newToken());
 
-    // Catch a late-joining phone up, so it can start measuring immediately.
+    // Replay so a late-joining phone can start measuring immediately.
     if (room.lastExercise) conn.send(room.lastExercise);
     if (room.lastState) conn.send(room.lastState);
   }

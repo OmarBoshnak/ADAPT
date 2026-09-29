@@ -1,12 +1,3 @@
-/**
- * @adapt/core — the ADAPT engine.
- *
- * Platform-agnostic by contract. This package must never import from react-native, expo,
- * or node:* — the ESLint rule in eslint.config.js enforces it. That purity is what lets a
- * full session be simulated in milliseconds with no emulator, and what makes the Fire OS
- * fallback and the Vega app share one engine.
- */
-
 export * from './types.js';
 export * from './random.js';
 export * from './text.js';
@@ -23,3 +14,5 @@ import * as protocol from './protocol.js';
 export { protocol };
 export * from './relay-client.js';
 export * from './live.js';
+export * from './sensor-session.js';
+export * from './vocabulary.js';

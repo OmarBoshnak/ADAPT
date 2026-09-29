@@ -1,16 +1,5 @@
-/**
- * Free Exercise DB entries promoted into the living-room session pool.
- *
- * Chosen because they need no equipment, fit a living room, put something into the floor,
- * and have a natural easier version in the home pack. Each one heads a ladder that crosses
- * sources — Star Jump (dataset) → Jumping Jacks (home pack) — which is the point: to the
- * engine they are one graph.
- *
- * These keep their real demonstration photographs from the dataset.
- *
- * `extraTags` may only ADD exclusion tags to what the name-based derivation already found.
- * There is no way to remove one from here, by design.
- */
+// Dataset entries promoted into the session pool, each heading a ladder into the home pack.
+// `extraTags` can only add exclusions.
 
 import type { PoolCuration } from '@adapt/core';
 

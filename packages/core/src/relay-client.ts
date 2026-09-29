@@ -1,20 +1,4 @@
-/**
- * The relay client — used identically by the TV, the phone, and the dev tools.
- *
- * It takes the platform's WebSocket constructor as a parameter instead of importing one,
- * which keeps it inside this package's no-platform rule and lets the same code run on Vega,
- * React Native, and Node 22+ (all of which provide a standard global WebSocket).
- *
- * What it handles so the apps do not have to:
- *   - pairing:     the display is given a code; the sensor joins with it
- *   - heartbeat:   answers the relay's pings, and treats silence as a dead connection
- *   - reconnect:   exponential backoff with jitter, reclaiming the same seat via a resume token
- *   - corrections: a spoken "easier" during a brief drop is held for a few seconds, not lost;
- *                  quality frames are not held — a stale frame is worse than a missing one
- *
- * A sensor told its code is unknown stops retrying: that is a person to ask, not a network
- * to wait for.
- */
+// Shared by the TV, the phone and the dev tools. The WebSocket constructor is injected to keep this package platform-free.
 
 import {
   encode,
@@ -26,7 +10,6 @@ import {
   type Role,
 } from './protocol.js';
 
-/** The slice of the standard WebSocket API this client needs. */
 export interface WebSocketLike {
   readonly readyState: number;
   send(data: string): void;
@@ -46,7 +29,6 @@ export type PeerState = 'absent' | 'present' | 'lost';
 
 export interface RelayStatus {
   connection: Connection;
-  /** The room's pairing code once known — TV-3 shows it. */
   code: string | null;
   peer: PeerState;
   attempt: number;
@@ -56,25 +38,23 @@ export interface RelayStatus {
 export interface RelayClientOptions {
   url: string;
   role: Role;
-  /** Required for the sensor; the display is assigned one. */
+  /** Sensor only; the display is assigned one. */
   code?: string;
   client: string;
   WebSocketImpl?: WebSocketConstructor;
-  /** No traffic for this long means the connection is dead. The relay pings every 5 s. */
+  /** The relay pings every 5 s. */
   silenceTimeoutMs?: number;
   initialBackoffMs?: number;
   maxBackoffMs?: number;
-  /** How long a correction waits for a reconnect before it is dropped as stale. */
+  /** Corrections are held this long across a reconnect; frames are never held. */
   correctionHoldMs?: number;
   random?: () => number;
   onMessage?: (message: Message) => void;
   onStatus?: (status: RelayStatus) => void;
 }
 
-/** Messages from the peer that the app cares about — control traffic is handled here. */
 const CONTROL: ReadonlySet<MessageType> = new Set(['hello', 'welcome', 'rejected', 'peer', 'ping', 'pong']);
 
-/** Options after defaults are applied. Callbacks stay genuinely optional. */
 interface ResolvedOptions extends Required<Omit<RelayClientOptions, 'code' | 'onMessage' | 'onStatus'>> {
   onMessage: ((message: Message) => void) | undefined;
   onStatus: ((status: RelayStatus) => void) | undefined;
@@ -122,7 +102,6 @@ export class RelayClient {
     this.connect();
   }
 
-  /** Stop for good: no reconnects, no timers. */
   stop(): void {
     this.stopped = true;
     this.clearTimers();
@@ -135,21 +114,19 @@ export class RelayClient {
     this.update({ connection: 'closed' });
   }
 
-  /** Send to the peer. Returns false if it was dropped. */
+  /** Returns false if the message was dropped. */
   send<T extends MessageType>(type: T, payload: Payload<T>): boolean {
     const text = encode(make(type, payload));
     if (this.socket && this.socket.readyState === OPEN && this._status.connection === 'open') {
       this.socket.send(text);
       return true;
     }
-    if (type === 'user.correction') {
+    if (type === 'user.correction' || type === 'user.command') {
       this.held.push({ text, expires: Date.now() + this.opts.correctionHoldMs });
       return true;
     }
     return false;
   }
-
-  // -------------------------------------------------------------------------
 
   private update(patch: Partial<RelayStatus>): void {
     this._status = { ...this._status, ...patch };
@@ -166,8 +143,7 @@ export class RelayClient {
   private armSilenceTimer(): void {
     if (this.silenceTimer) clearTimeout(this.silenceTimer);
     this.silenceTimer = setTimeout(() => {
-      // The relay pings every few seconds; silence this long means the link is dead even if
-      // the socket has not noticed yet.
+      // The socket may not have noticed the link is gone.
       this.socket?.close(4000, 'silent');
       this.onDisconnect();
     }, this.opts.silenceTimeoutMs);
@@ -195,7 +171,7 @@ export class RelayClient {
     };
     socket.onmessage = (ev) => this.onRaw(ev.data);
     socket.onerror = () => {
-      /* onclose follows and handles it */
+      // onclose follows
     };
     socket.onclose = () => {
       if (this.socket === socket) this.onDisconnect();
@@ -250,7 +226,7 @@ export class RelayClient {
         this.flushHeld();
         return;
       case 'rejected':
-        // A sensor with an unknown code needs a person to re-enter it — retrying cannot help.
+        // An unknown code needs a person to re-enter it; retrying cannot help.
         this.update({ connection: 'rejected', rejectedReason: m.reason });
         this.clearTimers();
         this.socket?.close(1000, 'rejected');

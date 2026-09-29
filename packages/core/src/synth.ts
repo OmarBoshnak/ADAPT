@@ -1,15 +1,4 @@
-/**
- * Synthetic floor-vibration traces.
- *
- * Used by the tests and by `tools/sim` so the whole pipeline — raw samples → estimator →
- * strain → adaptation — can run headlessly, deterministically, and in milliseconds.
- *
- * These are shaped by the same physics `signal.ts` assumes: a landing is a short damped
- * ring in the 1–8 Hz band, a footfall is a softer and slower one, a hold is noise. They are
- * NOT a substitute for real recordings. Phase 5 records real traces from a real floor and
- * re-tunes against those, because synthetic data will have flattered the estimator
- * somewhere.
- */
+// Synthetic floor-vibration traces for tests and tools/sim. Real recordings replace them for tuning in Phase 5.
 
 import { createRng, gaussian } from './random.js';
 import type { SensorSample, SignalProfile } from './types.js';
@@ -18,21 +7,19 @@ import { SAMPLE_RATE } from './signal.js';
 export interface SynthOptions {
   profile: SignalProfile;
   durationSec: number;
-  /** Events per minute: landings for impact, footfalls for oscillation. */
   cadencePerMin: number;
-  /** Peak floor response, in g. */
+  /** Peak response in g. */
   amplitudeG?: number;
-  /** Multiplies amplitude over the segment; receives seconds since start. 1 = fresh. */
+  /** Amplitude multiplier over time; 1 = fresh. */
   fade?: (tSec: number) => number;
-  /** Timing irregularity (coefficient of variation of the interval) over the segment. */
+  /** Interval coefficient of variation over time. */
   jitter?: (tSec: number) => number;
-  /** Multiplies cadence over the segment. Below 1 = slowing down. */
   pace?: (tSec: number) => number;
   noiseG?: number;
   startT?: number;
   seed?: number;
   sampleRate?: number;
-  /** Seconds (relative to start) at which the phone is picked up for one second. */
+  /** Seconds at which the phone is picked up for one second. */
   pickupsAt?: number[];
 }
 
@@ -43,7 +30,6 @@ const DEFAULT_AMPLITUDE: Record<SignalProfile, number> = {
   static: 0,
 };
 
-/** Ring frequency and decay per profile — a landing rings harder and faster than a step. */
 const RESPONSE: Record<SignalProfile, { hz: number; decaySec: number }> = {
   impact: { hz: 6, decaySec: 0.08 },
   oscillation: { hz: 3.5, decaySec: 0.12 },
@@ -60,7 +46,6 @@ export function synthesizeTrace(opts: SynthOptions): SensorSample[] {
   const { hz, decaySec } = RESPONSE[opts.profile];
   const n = Math.round(opts.durationSec * fs);
 
-  // Schedule events first, so irregular timing is honest rather than resampled.
   const events: Array<{ t: number; a: number }> = [];
   if (opts.profile !== 'static' && opts.cadencePerMin > 0) {
     let t = 0.3;
@@ -88,7 +73,6 @@ export function synthesizeTrace(opts: SynthOptions): SensorSample[] {
       v += ev.a * Math.exp(-dt / decaySec) * Math.sin(2 * Math.PI * hz * dt);
     }
 
-    // Face-up on the floor: gravity on z. A pick-up tilts it and adds handling motion.
     let gx = 0;
     let gz = 1;
     let handling = 0;

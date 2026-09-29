@@ -20,7 +20,6 @@ function ctxFor(p: Partial<Profile> = {}): SessionContext {
   return { graph, profile: fixtureProfile(p), energy: 'medium' };
 }
 
-/** A hand-written plan, so tests control exactly what runs when. */
 function plan(ids: string[], durationSec = 60, restSec = 10): SessionPlan {
   return {
     id: 'p',
@@ -67,8 +66,7 @@ describe('phases', () => {
     const big = reduce(ctx, createSession(ctx, p), { type: 'TICK', dtSec: 60 });
     const small = run(ctx, createSession(ctx, p), 60, 0.25);
     expect(big.phase).toBe(small.phase);
-    // Euler steps of 0.5 s vs 0.25 s differ slightly; what matters is that a big tick is split,
-    // not integrated as one jump (which would be off by orders of magnitude more).
+    // Step sizes differ slightly; one unsplit jump would be off by far more.
     expect(Math.abs(big.strain - small.strain) / small.strain).toBeLessThan(0.001);
   });
 

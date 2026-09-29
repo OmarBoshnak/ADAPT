@@ -1,34 +1,19 @@
 #!/usr/bin/env node
-/**
- * adapt-fake-sensor — the phone, without a phone.
- *
- * Joins the relay as the sensor, follows the TV's `session.exercise` announcements, and
- * synthesises floor vibration for whatever movement is running. Every sample goes through
- * the real QualityEstimator — the same code the phone runs — and a scored frame goes to the
- * TV twice a second.
- *
- *   npm run fake-sensor -- --code 4821
- *
- * Keys:  e  say "easier"    h  say "harder"    d  drop off the network for 8 s    q  quit
- *
- * Scripted (for unattended runs):
- *   --easier-after <s>   say "easier" this many seconds after the first exercise starts
- *   --drop-after <s>     vanish this many seconds in (Wi-Fi blip), back 8 s later
- *   --strong             hold form throughout instead of fading
- *   --speed <n>          run faster than real time — must match console-tv's --speed
- */
+// The phone, without a phone: synthesises floor vibration and runs it through the same SensorSession the phone uses.
+//
+//   npm run fake-sensor -- --code 4821 [--easier-after s] [--drop-after s] [--strong] [--speed n]
+//   keys: e easier · h harder · s swap this · p pause · r resume · d drop off the network for 8 s · q quit
 
 import {
   hashString,
-  QualityEstimator,
   RelayClient,
   SAMPLE_RATE,
+  SensorSession,
   synthesizeTrace,
-  type protocol,
+  type Command,
   type SensorSample,
 } from '@adapt/core';
 
-// ── args ─────────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(`--${name}`);
 const opt = (name: string, fallback?: string) => {
@@ -49,17 +34,14 @@ const dropAfter = opt('drop-after') ? Number(opt('drop-after')) : null;
 
 const log = (line: string) => console.log(`[phone ${clockLabel()}] ${line}`);
 
-// ── state ────────────────────────────────────────────────────────────────────
-let seq = 0;
-let measuring = false;
-let exercise: protocol.MessageOf<'session.exercise'> | null = null;
-let estimator: QualityEstimator | null = null;
 let trace: SensorSample[] = [];
 let traceIndex = 0;
-let sampleCount = 0;
-let firstExerciseAt: number | null = null; // scaled seconds
+let sampleT = 0;
+let measuredSeq: number | null = null;
+let firstExerciseAt: number | null = null;
 let saidEasier = false;
 let dropped = false;
+let droppedOnce = false;
 const startedAt = Date.now();
 
 function scaledNow(): number {
@@ -70,7 +52,6 @@ function clockLabel(): string {
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }
 
-// ── relay ────────────────────────────────────────────────────────────────────
 let lastConnection = '';
 const client = new RelayClient({
   url,
@@ -78,43 +59,17 @@ const client = new RelayClient({
   code,
   client: 'adapt-fake-sensor/0.1',
   onStatus: (s) => {
-    if (s.connection !== lastConnection) {
-      lastConnection = s.connection;
-      log(s.connection === 'rejected' ? `rejected: ${s.rejectedReason}` : `relay ${s.connection}${s.connection === 'open' ? ` · room ${s.code}` : ''}`);
-      if (s.connection === 'rejected') process.exit(1);
-      if (s.connection === 'open') client.send('sensor.status', { onFloor: true });
-    }
+    if (s.connection === lastConnection) return;
+    lastConnection = s.connection;
+    log(s.connection === 'rejected' ? `rejected: ${s.rejectedReason}` : `relay ${s.connection}${s.connection === 'open' ? ` · room ${s.code}` : ''}`);
+    if (s.connection === 'rejected') process.exit(1);
+    if (s.connection === 'open') session.announceFloor();
   },
   onMessage: (m) => {
-    if (m.type === 'session.exercise') {
-      // After a reconnect the relay replays the TV's last announcement and the TV resyncs as
-      // well. Same seq means same movement: keep measuring rather than re-baselining twice.
-      if (exercise && m.seq === seq) return;
-      seq = m.seq;
-      exercise = m;
-      estimator = new QualityEstimator({ profile: m.signalProfile, expectedCadence: m.expectedCadence });
-      // A fading person loses form faster on harder movements, and later in the session.
-      const into = firstExerciseAt === null ? 0 : scaledNow() - firstExerciseAt;
-      const perMin = strong ? 0 : 0.35 * (1 + into / 300);
-      const fade = (t: number) => Math.max(0.35, 1 - (perMin * t) / 60);
-      trace = synthesizeTrace({
-        profile: m.signalProfile,
-        durationSec: 600,
-        cadencePerMin: m.expectedCadence ?? 60,
-        fade,
-        jitter: (t) => 0.04 + 0.12 * (1 - fade(t)),
-        pace: (t) => 1 - 0.15 * (1 - fade(t)),
-        seed: hashString(`${m.seq}:${m.exerciseId}`),
-      });
-      traceIndex = 0;
-      firstExerciseAt ??= scaledNow();
-      log(`measuring ${m.name} (seq ${m.seq}, ${m.signalProfile})`);
-    } else if (m.type === 'session.state') {
-      measuring = m.phase === 'active';
-      if (m.phase === 'complete') {
-        log('session complete');
-        setTimeout(() => shutdown(), 500);
-      }
+    session.receive(m);
+    if (m.type === 'session.state' && m.phase === 'complete') {
+      log('session complete');
+      setTimeout(() => shutdown(), 500);
     } else if (m.type === 'session.adapted') {
       log(`TV switched ${m.from} → ${m.to}`);
     } else if (m.type === 'peer') {
@@ -122,30 +77,40 @@ const client = new RelayClient({
     }
   },
 });
+const session = new SensorSession({ send: (type, payload) => client.send(type, payload) });
+
+session.subscribe((s) => {
+  if (!s.exercise || s.exercise.seq === measuredSeq) return;
+  measuredSeq = s.exercise.seq;
+  const into = firstExerciseAt === null ? 0 : scaledNow() - firstExerciseAt;
+  const perMin = strong ? 0 : 0.35 * (1 + into / 300);
+  const fade = (t: number) => Math.max(0.35, 1 - (perMin * t) / 60);
+  trace = synthesizeTrace({
+    profile: s.exercise.profile,
+    durationSec: 600,
+    cadencePerMin: s.exercise.expectedCadence ?? 60,
+    fade,
+    jitter: (t) => 0.04 + 0.12 * (1 - fade(t)),
+    pace: (t) => 1 - 0.15 * (1 - fade(t)),
+    seed: hashString(`${s.exercise.seq}:${s.exercise.name}`),
+  });
+  traceIndex = 0;
+  firstExerciseAt ??= scaledNow();
+  log(`measuring ${s.exercise.name} (seq ${s.exercise.seq}, ${s.exercise.profile})`);
+});
 client.start();
 
-// ── the sampling loop: SAMPLE_RATE × speed samples per real second ───────────
+const quiet = synthesizeTrace({ profile: 'static', durationSec: 10, cadencePerMin: 0 });
 const LOOP_MS = 100;
 const perLoop = Math.round((SAMPLE_RATE * speed * LOOP_MS) / 1000);
-const framesEvery = SAMPLE_RATE / 2;
 
 const loop = setInterval(() => {
-  if (dropped || !measuring || !estimator || !exercise) return;
+  if (dropped) return;
   for (let i = 0; i < perLoop; i++) {
-    const s = trace[traceIndex++];
-    if (!s) break;
-    estimator.push(s);
-    if (++sampleCount % framesEvery === 0) {
-      const f = estimator.frame();
-      client.send('sensor.frame', {
-        seq,
-        t: f.t,
-        quality: Math.min(1, Math.max(0, f.quality)),
-        cadence: f.cadence,
-        confidence: f.confidence,
-        profile: f.profile,
-      });
-    }
+    const source = session.measuring ? trace[traceIndex++] : quiet[Math.round(sampleT * SAMPLE_RATE) % quiet.length];
+    if (!source) break;
+    session.push({ ...source, t: sampleT });
+    sampleT += 1 / SAMPLE_RATE;
   }
 
   if (firstExerciseAt !== null) {
@@ -163,7 +128,11 @@ function say(word: 'easier' | 'harder') {
   log(`said "${word}"`);
 }
 
-let droppedOnce = false;
+function command(command: Command, heard?: string) {
+  client.send('user.command', heard ? { command, source: 'voice', heard } : { command, source: 'button' });
+  log(heard ? `said "${heard}"` : `pressed ${command}`);
+}
+
 function drop() {
   droppedOnce = true;
   dropped = true;
@@ -176,17 +145,19 @@ function drop() {
   }, 8000 / speed);
 }
 
-// ── keys ─────────────────────────────────────────────────────────────────────
 if (process.stdin.isTTY) {
   process.stdin.setRawMode(true);
   process.stdin.setEncoding('utf8');
   process.stdin.on('data', (k: string) => {
     if (k === 'e') say('easier');
     else if (k === 'h') say('harder');
+    else if (k === 's') command('swap', 'swap this');
+    else if (k === 'p') command('pause', 'pause');
+    else if (k === 'r') command('resume');
     else if (k === 'd' && !dropped) drop();
     else if (k === 'q' || k === '\u0003') shutdown();
   });
-  log('keys: e easier · h harder · d drop network · q quit');
+  log('keys: e easier · h harder · s swap this · p pause · r resume · d drop network · q quit');
 }
 
 function shutdown() {

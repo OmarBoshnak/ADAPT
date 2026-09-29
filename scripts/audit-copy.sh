@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
-#
-# Copy + colour audit.
-#
-# The design spec is explicit that ADAPT never evaluates a body, never interprets a
-# health condition, and never uses red. Those are safety requirements, not style
-# preferences, so they fail the build rather than relying on a reviewer noticing.
-#
-# Run: npm run audit:copy
+# Fails the build on body-composition, clinical, alarm or camera language, and on red.
 
 set -uo pipefail
 
@@ -17,15 +10,12 @@ FAIL=0
 
 SEARCH_PATHS=(apps packages/core/src packages/data/src tools)
 
-# Only ever look at source we author. Lock files in particular are a rich source of
-# false positives — npm dependency names include words like "serialize-error".
 EXCLUDES=(
   --include=*.ts
   --include=*.tsx
   --include=*.js
   --include=*.jsx
   --exclude=*.d.ts
-  # Tests specify these rules, so they necessarily name the forbidden words.
   --exclude=*.test.ts
   --exclude=*.test.tsx
   --exclude=*.spec.ts
@@ -41,17 +31,14 @@ EXCLUDES=(
   --exclude-dir=coverage
 )
 
-# The audit governs USER-FACING COPY. Comments are not user-facing — and the files that
-# define these rules necessarily quote the very words they forbid. So strip comment lines
-# (`//`, `*`, `/*`, `#`) before judging. A forbidden word in a string literal still fails.
+# Comments are not user-facing copy.
 strip_comments() {
   grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|\*|/\*|#)'
 }
 
-# Developer diagnostics never reach a screen: thrown exceptions and console output. The
-# word "error" in `throw new Error(...)` is an identifier, not adaptation copy.
+# Thrown errors, console output and platform event names never reach a screen.
 strip_diagnostics() {
-  grep -vE 'new Error\(|console\.(error|warn|log|info)\('
+  grep -vE "new Error\(|console\.(error|warn|log|info)\(|\.error\b|'error'"
 }
 
 report() {
@@ -75,27 +62,22 @@ echo "ADAPT copy + colour audit"
 echo "========================="
 echo
 
-# 1. The app never evaluates or judges the user's body.
 report "no body-composition language" \
   '\b(BMI|body mass index|overweight|obese|obesity|calories? burned|calorie target|ideal weight)\b' \
   "Height and weight are inputs for movement selection only, never shown back as an assessment."
 
-# 2. The app records medical conditions; it never interprets them.
 report "no clinical/diagnostic language" \
   '\b(diagnos(is|e|ed)|symptom|prognosis|treat(ment|s)? (your|this)|medical advice is|you should consult because)\b' \
   "The interface records that a condition exists so movements can be excluded. It never explains or interprets one."
 
-# 3. Adaptation is a calm coaching decision, never an error.
 report "no alarm/error framing for adaptation" \
   '\b(warning|error|failure|alert|danger|your form is bad|incorrect form)\b' \
   "Amber signals an adaptive decision in progress. It is never an error or alarm state."
 
-# 4. There is no camera in this product.
 report "no camera or computer-vision claims" \
   '\b(computer vision|camera (feed|monitor|track)|visual form (check|recognition)|we watch you)\b' \
   "Movement quality comes from phone accelerometer and gyroscope signal only. Nothing observes the user visually."
 
-# 5. Red is never used anywhere in this product.
 RED_HITS=$(grep -rniE "#(f{2}|e[0-9a-f]|d[0-9a-f])(0|1|2|3)[0-9a-f](0|1|2|3)[0-9a-f]\b" \
   "${SEARCH_PATHS[@]}" "${EXCLUDES[@]}" 2>/dev/null \
   | grep -viE '(audit-copy|FF6B2C|FF8A52|FFC53D)' \

@@ -1,29 +1,15 @@
-/**
- * The profile → exclusion table.
- *
- * This table ONLY removes movements from the eligible set. It never recommends a movement,
- * never explains a condition, never grades severity, and never says anything is "good for"
- * or "bad for" anyone. Each rule carries a plain label describing what was excluded — a
- * description of the plan, not of the person.
- *
- * The mapping is deliberately conservative. A movement wrongly excluded costs a little
- * variety; a movement wrongly included could be one someone told us to avoid.
- *
- * ADAPT is not a medical service. Nothing here is medical advice, and the onboarding
- * screens say so wherever the profile is captured.
- */
+// Profile → exclusions. Only ever removes movements; never recommends, explains or grades.
+// Conservative on purpose: a wrong exclusion costs variety, a wrong inclusion could cost more.
 
 import type { Condition, Exercise, Injury, MovementTag, Profile } from './types.js';
 
 interface Rule {
   excludeTags: MovementTag[];
-  /** Optional: drop anything above this intensity. */
   maxIntensity?: number;
-  /** Optional: cap the length of any segment at or above HIGH_INTENSITY. */
+  /** Caps segments at or above HIGH_INTENSITY. */
   capHighIntensitySegmentSec?: number;
 }
 
-/** Threshold for "high-intensity" in segment caps and labels. */
 export const HIGH_INTENSITY = 6;
 
 const INJURY_RULES: Record<Injury, Rule> = {
@@ -43,10 +29,7 @@ const CONDITION_RULES: Record<Condition, Rule> = {
   'joint condition': { excludeTags: ['plyometric', 'high-impact', 'deep-knee-flexion'] },
 };
 
-/**
- * Plain-language description of each exclusion, for the TV-4 footer. Describes the plan
- * ("jumping movements excluded"), never the person.
- */
+// Labels describe the plan, never the person.
 const TAG_LABELS: Record<MovementTag, string> = {
   plyometric: 'jumping movements excluded',
   'high-impact': 'hard landings excluded',
@@ -62,7 +45,6 @@ const TAG_LABELS: Record<MovementTag, string> = {
   'wrist-loading': 'weight on the hands excluded',
 };
 
-/** Order the footer lists tags in — the most common, most legible first. */
 const LABEL_ORDER: MovementTag[] = [
   'plyometric',
   'high-impact',
@@ -106,17 +88,12 @@ export function isExcluded(ex: Exercise, constraints: Constraints): boolean {
   return ex.tags.some((t) => constraints.excludedTags.has(t));
 }
 
-/** A predicate for `resolveAlternatives` and the generator. */
 export function eligibilityFor(profile: Profile): (ex: Exercise) => boolean {
   const c = constraintsFor(profile);
   return (ex) => !isExcluded(ex, c);
 }
 
-/**
- * Footer labels for TV-4, e.g. ["jumping movements excluded", "deep knee bends excluded"].
- *
- * "hard landings" is folded into "jumping" when both apply, so the footer stays short.
- */
+/** "hard landings" folds into "jumping" when both apply. */
 export function exclusionLabels(profile: Profile): string[] {
   const c = constraintsFor(profile);
   const tags = LABEL_ORDER.filter((t) => c.excludedTags.has(t));

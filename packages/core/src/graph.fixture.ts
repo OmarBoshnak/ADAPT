@@ -1,10 +1,4 @@
-/**
- * A tiny hand-built graph for unit tests. Two ladders, two families, one floor each — small
- * enough to reason about by eye, shaped like the real session pool.
- *
- *   jacks:  Big Jump 7.0 → Jacks 6.0 → Step Jacks 3.5 (floor)
- *   march:  Fast March 4.0 → March 2.5 (floor)
- */
+// jacks: Big Jump 7.0 → Jacks 6.0 → Step Jacks 3.5 · march: Fast March 4.0 → March 2.5
 
 import type { Exercise, ExerciseGraph, Profile } from './types.js';
 

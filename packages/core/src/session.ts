@@ -1,16 +1,5 @@
-/**
- * The live session, as a pure reducer.
- *
- *   getready → active ⇄ adapting → rest → active … → complete
- *
- * Time advances only through TICK events, so the same reducer drives the TV at wall-clock
- * speed and `tools/sim` at thousands of times real speed. Nothing here reads a clock,
- * touches a network, or knows which screen is showing.
- *
- * Two routes into `adapting`, and the TV must make them look different (TV-9 vs TV-8):
- *   predicted-strain  the model reached its threshold on its own     → "I noticed"
- *   user-correction   the person said "easier" (or pressed it)       → "I learned"
- */
+// getready → active ⇄ adapting → rest → active … → complete
+// Time advances only through TICK, so the same reducer runs at wall-clock speed on the TV and far faster in tools/sim.
 
 import { eligibilityFor } from './contraindications.js';
 import { blocksFrom } from './generator.js';
@@ -45,16 +34,13 @@ import type {
   StrainPoint,
 } from './types.js';
 
-/** How long the TV-9 decision panel holds before the new movement starts ("STARTING IN 3"). */
 export const ADAPTING_SEC = 3;
 
-/** Smoothing time constant for incoming quality frames. */
 export const QUALITY_TAU_SEC = 3;
 
-/** Strain series resolution for the TV-10 timeline. */
 const SERIES_EVERY_SEC = 2;
 
-/** Integration step cap — large TICKs are split so the physics stays accurate. */
+/** Large ticks are split into steps no longer than this. */
 const MAX_STEP_SEC = 0.5;
 
 export interface SessionContext {
@@ -66,18 +52,16 @@ export interface SessionContext {
 export interface SessionState {
   phase: SessionPhase;
   plan: SessionPlan;
-  /** The live threshold. Fixed for the session; learning changes it next time. */
+  /** Fixed for the session; learning applies from the next one. */
   T: number;
   segmentIndex: number;
   segmentElapsedSec: number;
-  /** Countdown for getready / rest / adapting. */
   phaseRemainingSec: number;
-  /** Seconds since the first rep, including rests. Excludes get-ready. */
+  /** Includes rests, excludes get-ready. */
   sessionElapsedSec: number;
   currentExerciseId: string;
   strain: number;
   strainSeries: StrainPoint[];
-  /** Smoothed movement quality for the current exercise, or null before any frame. */
   quality: number | null;
   confidence: number;
   measuredCadence: number | null;
@@ -87,10 +71,9 @@ export interface SessionState {
   adaptations: Adaptation[];
   corrections: Correction[];
   learning: LearningOutcome[];
-  /** The bias the NEXT session will use. Moves with each correction. */
+  /** The bias the next session will use. */
   bias: number;
   lastAdaptationAtSec: number | null;
-  /** The decision being shown while `phase === 'adapting'`. */
   pending: Adaptation | null;
   nextSeriesAtSec: number;
 }
@@ -100,14 +83,9 @@ export type SessionEvent =
   | { type: 'QUALITY'; frame: QualityFrame }
   | { type: 'CORRECTION'; direction: CorrectionDirection; source: CorrectionSource; heard?: string }
   | { type: 'SKIP' }
-  /** "Doesn't suit me": a different movement, with nothing learned about load. */
+  /** "Doesn't suit me" teaches nothing about load. */
   | { type: 'SWAP'; exerciseId: string }
-  /** The phone went away. Its last reading must not keep steering the model. */
   | { type: 'SENSOR_LOST' };
-
-// ---------------------------------------------------------------------------
-// Construction
-// ---------------------------------------------------------------------------
 
 export function createSession(ctx: SessionContext, plan: SessionPlan): SessionState {
   const first = plan.segments[0];
@@ -138,10 +116,6 @@ export function createSession(ctx: SessionContext, plan: SessionPlan): SessionSt
     nextSeriesAtSec: SERIES_EVERY_SEC,
   };
 }
-
-// ---------------------------------------------------------------------------
-// Reducer
-// ---------------------------------------------------------------------------
 
 export function reduce(ctx: SessionContext, state: SessionState, event: SessionEvent): SessionState {
   if (state.phase === 'complete') return state;
@@ -247,7 +221,6 @@ function tick(ctx: SessionContext, state: SessionState, dtSec: number): SessionS
       });
       if (s.phaseRemainingSec <= 1e-9) s = startNextSegment(s);
     } else if (s.phase === 'adapting') {
-      // The decision panel holds; the segment clock pauses and no strain accrues.
       step = Math.min(step, s.phaseRemainingSec);
       s = { ...s, sessionElapsedSec: s.sessionElapsedSec + step, phaseRemainingSec: s.phaseRemainingSec - step };
       if (s.phaseRemainingSec <= 1e-9) s = finishAdaptation(s);
@@ -280,14 +253,9 @@ function startNextSegment(s: SessionState): SessionState {
   };
 }
 
-/** A new movement has a new signal shape — its quality must be re-baselined, not carried over. */
 function freshSignal() {
   return { quality: null, confidence: 0, measuredCadence: null, lastFrameT: null };
 }
-
-// ---------------------------------------------------------------------------
-// Adaptation
-// ---------------------------------------------------------------------------
 
 function beginAdaptation(
   ctx: SessionContext,
@@ -304,7 +272,7 @@ function beginAdaptation(
     target = up && eligible(up) ? up.id : null;
   }
 
-  // Asking for harder at the top of a ladder changes nothing on screen; it is still learned.
+  // At the top of a ladder nothing changes on screen, but it is still learned.
   if (direction === 'harder' && target === null) return s;
 
   const action: AdaptationAction = target ? 'switch' : 'end-segment';
@@ -346,13 +314,8 @@ function finishAdaptation(s: SessionState): SessionState {
   return { ...base, phase: 'active', currentExerciseId: a.toExerciseId, ...freshSignal() };
 }
 
-// ---------------------------------------------------------------------------
-// Inputs
-// ---------------------------------------------------------------------------
-
 function onQuality(ctx: SessionContext, s: SessionState, frame: QualityFrame): SessionState {
   if (s.phase !== 'active') return s;
-  // Frames from the previous movement arrive late after a switch. Ignore them.
   if (frame.profile !== getExercise(ctx.graph, s.currentExerciseId).signalProfile) return s;
 
   const dt = s.lastFrameT === null ? 0.5 : Math.max(0, frame.t - s.lastFrameT);
@@ -381,7 +344,6 @@ function onCorrection(
   const correction: Correction =
     heard !== undefined ? { atSec: s.sessionElapsedSec, direction, source, heard } : { atSec: s.sessionElapsedSec, direction, source };
 
-  // When did the model expect to act? Asked from the live state, before anything changes.
   const p = projectionFor(ctx, s);
   const predictedAtSec = p.secondsUntilThreshold === null ? null : s.sessionElapsedSec + p.secondsUntilThreshold;
 
@@ -401,15 +363,9 @@ function onCorrection(
     learning: [...s.learning, outcome],
     bias: outcome.biasAfter,
   };
-  // User corrections bypass the auto-adapt gates — the person is always in control.
   return beginAdaptation(ctx, learned, 'user-correction', direction);
 }
 
-// ---------------------------------------------------------------------------
-// Selectors for the screens
-// ---------------------------------------------------------------------------
-
-/** The forecast behind TV-7's dashed curve and "ADAPTS IN ~N MIN". */
 export function projectionFor(ctx: SessionContext, s: SessionState): Projection {
   const blocks = blocksFrom(
     s.plan,
@@ -435,7 +391,6 @@ export interface SessionSummary {
   biasAfter: number;
 }
 
-/** Everything TV-10 needs. The learning card is present only if the person corrected the model. */
 export function summaryFor(ctx: SessionContext, s: SessionState): SessionSummary {
   const lastEasier = [...s.learning].reverse().find((l) => l.direction === 'easier') ?? s.learning[s.learning.length - 1] ?? null;
   return {

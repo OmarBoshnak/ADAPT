@@ -2,14 +2,7 @@
 import tseslint from 'typescript-eslint';
 import js from '@eslint/js';
 
-/**
- * Packages that must never appear in `packages/core`.
- *
- * The strain engine is the product's moat. Keeping it free of platform imports is
- * what lets us (a) unit-test a full session in milliseconds with no emulator, and
- * (b) port the TV app to Vega OS as a view-layer swap rather than a rewrite.
- * This rule is the enforcement, not a convention.
- */
+// Keeps the engine testable without a device and portable across TV platforms.
 const PLATFORM_MODULES = [
   'react',
   'react-native',
@@ -39,8 +32,7 @@ export default tseslint.config(
       'apps/tv-fireos/android/**',
       'apps/tv-fireos/ios/**',
       'apps/phone/.expo/**',
-      // React Native ships its build config as CommonJS scripts. They are tooling,
-      // not product code, and linting them under the ESM config is pure noise.
+      // React Native build configs are CommonJS tooling.
       '**/babel.config.js',
       '**/metro.config.js',
       '**/jest.config.js',
@@ -63,7 +55,6 @@ export default tseslint.config(
     },
   },
 
-  // ---- The core purity guard -------------------------------------------------
   {
     files: ['packages/core/**/*.ts'],
     rules: {
@@ -88,10 +79,6 @@ export default tseslint.config(
     },
   },
 
-  // ---- The safety guard ------------------------------------------------------
-  // The design spec is explicit: the interface never evaluates a body or interprets
-  // a condition. A wrong sentence here is a real problem, not a design flaw — so it
-  // fails the build rather than relying on review.
   {
     files: ['apps/**/*.{ts,tsx}', 'packages/**/*.ts'],
     rules: {

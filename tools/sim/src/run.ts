@@ -1,10 +1,4 @@
-/**
- * One simulated session, sample by sample.
- *
- * At 50 Hz: synthesise a floor-vibration sample for whatever the person is doing, push it
- * through the real QualityEstimator, emit a QualityFrame every half second, and advance
- * the real session reducer. Nothing is stubbed between the sensor and the adaptation.
- */
+// 50 Hz synthetic samples → real QualityEstimator → frame every 0.5 s → real reducer. Nothing is stubbed.
 
 import {
   createSession,
@@ -28,14 +22,9 @@ import {
   type SessionSummary,
 } from '@adapt/core';
 
-/** How a simulated person's movement holds up. */
 export type UserModel = 'fading' | 'strong';
 
-/**
- * A fading person loses landing strength and rhythm faster on harder movements and later
- * in the session. A strong person holds form throughout. Both are caricatures; Phase 5
- * replaces them with recordings of a real floor.
- */
+/** A fading person loses form faster on harder movements and later in the session. */
 function fadeFor(user: UserModel, ex: Exercise, sessionElapsedAtStart: number): (t: number) => number {
   if (user === 'strong') return () => 1;
   const perMin = Math.max(0, ex.intensity - 3.5) * 0.06 * (1 + sessionElapsedAtStart / 300);
@@ -50,7 +39,6 @@ export interface RunOptions {
   seed: number;
   paired: boolean;
   user: UserModel;
-  /** Called every tick; returns a correction when the scripted person speaks. */
   speak?: (state: SessionState, ctx: SessionContext) => SessionEvent | null;
 }
 

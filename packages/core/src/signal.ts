@@ -1,28 +1,5 @@
-/**
- * Movement quality from floor vibration.
- *
- * The phone lies face-up on the floor beside the user. It does not move with them; it
- * feels the floor. That physical fact decides what can and cannot be measured, and this
- * module is honest about it:
- *
- *   impact       jumps and jacks land hard and leave sharp, discrete peaks. Measured well:
- *                peak strength against the person's own first reps, and rhythm steadiness.
- *   oscillation  stepping and marching leave softer periodic footfalls. Measured by energy,
- *                cadence, and how periodic the signal still is.
- *   sustained    squats, lunges and punches barely change floor contact. Measured weakly,
- *                and reported with reduced confidence.
- *   static       holds put nothing into the floor at all. Not measured — confidence is always
- *                zero, and the strain model runs on prediction alone.
- *
- * Every score is relative to a baseline captured from the first seconds of each exercise
- * (the reason TV-6 insists the person is in position before the first rep). There is no
- * universal "good form" number, and nothing here ever produces one.
- *
- * Pipeline, per sample at 50 Hz:
- *   |a| → high-pass 1 Hz (removes gravity) → low-pass 8 Hz (removes electrical noise)
- * and separately, per axis:
- *   a → low-pass 0.3 Hz → gravity direction → "has the phone been picked up?"
- */
+// Movement quality from floor vibration, scored against a baseline taken from each exercise's first reps.
+// |a| → high-pass 1 Hz → low-pass 8 Hz for the vibration band; per-axis low-pass 0.3 Hz for pickup detection.
 
 import type { QualityFrame, SensorSample, SignalProfile } from './types.js';
 
@@ -34,7 +11,7 @@ const PEAK_SIGMA = 1.5;
 const PEAK_NOISE_FLOOR_G = 0.02;
 const PICKUP_ANGLE_DEG = 25;
 const PICKUP_HOLDOFF_SEC = 2;
-/** Baselines weaker than these mean the floor is damping almost everything (thick carpet). */
+// Baselines below these mean the floor is damping almost everything, e.g. thick carpet.
 const WEAK_IMPACT_G = 0.03;
 const WEAK_RMS_G = 0.008;
 const WEAK_CONFIDENCE = 0.2;
@@ -42,11 +19,7 @@ const SUSTAINED_CONFIDENCE = 0.6;
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
-// ---------------------------------------------------------------------------
-// Filters
-// ---------------------------------------------------------------------------
-
-/** RBJ-cookbook biquad. Pure arithmetic — no platform DSP required. */
+/** RBJ-cookbook biquad. */
 export class Biquad {
   private b0: number;
   private b1: number;
@@ -86,10 +59,6 @@ export class Biquad {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Feature extraction (pure)
-// ---------------------------------------------------------------------------
-
 function mean(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
 }
@@ -104,11 +73,7 @@ export function rms(xs: number[]): number {
   return xs.length ? Math.sqrt(mean(xs.map((x) => x * x))) : 0;
 }
 
-/**
- * Dominant period by normalised autocorrelation, searched between 0.25 s and 2 s — the
- * range of human stepping and bouncing. Returns the period and how periodic the signal is
- * (1 = perfectly periodic, 0 = noise).
- */
+/** Autocorrelation over 0.25–2 s lags; periodicity is 1 for a perfectly periodic signal. */
 export function dominantPeriod(xs: number[], sampleRate: number): { periodSec: number; periodicity: number } | null {
   const energy = xs.reduce((a, x) => a + x * x, 0);
   if (energy <= 1e-12) return null;
@@ -119,7 +84,7 @@ export function dominantPeriod(xs: number[], sampleRate: number): { periodSec: n
   for (let lag = minLag; lag <= maxLag; lag++) {
     let acc = 0;
     for (let i = 0; i + lag < xs.length; i++) acc += (xs[i] as number) * (xs[i + lag] as number);
-    // Unbiased: normalise by overlap length so long lags are not penalised.
+    // Normalise by overlap so long lags are not penalised.
     const r = acc / energy / ((xs.length - lag) / xs.length);
     if (r > best) {
       best = r;
@@ -155,10 +120,6 @@ export function impactFeatures(peaks: Peak[]): ImpactFeatures {
   };
 }
 
-// ---------------------------------------------------------------------------
-// The estimator
-// ---------------------------------------------------------------------------
-
 interface Baseline {
   amplitude: number;
   intervalSec: number;
@@ -175,10 +136,7 @@ export interface EstimatorOptions {
   baselineSec?: number;
 }
 
-/**
- * Stateful, streaming quality estimator. One per exercise: call `reset` when the exercise
- * changes, because a new movement has a new signal shape and needs a new baseline.
- */
+/** Streaming estimator. Reset on every exercise change; each movement needs its own baseline. */
 export class QualityEstimator {
   private profile: SignalProfile = 'impact';
   private expectedCadence: number | null = null;
@@ -223,7 +181,7 @@ export class QualityEstimator {
     this.lastPeakT = -Infinity;
     this.baseline = null;
     this.sampleCount = 0;
-    // refGravity survives a reset: the phone has not moved just because the exercise did.
+    // refGravity survives: the phone has not moved just because the exercise changed.
   }
 
   push(s: SensorSample): void {
@@ -231,7 +189,6 @@ export class QualityEstimator {
     this.lastT = s.t;
     this.sampleCount++;
 
-    // Gravity direction — a slow low-pass on each axis.
     const g: [number, number, number] = [
       this.grav[0].process(s.ax),
       this.grav[1].process(s.ay),
@@ -242,7 +199,6 @@ export class QualityEstimator {
       this.handledUntil = s.t + PICKUP_HOLDOFF_SEC;
     }
 
-    // Floor-vibration band.
     const mag = Math.sqrt(s.ax * s.ax + s.ay * s.ay + s.az * s.az);
     const x = this.lp.process(this.hp.process(mag));
     this.band.push(x);
@@ -258,7 +214,6 @@ export class QualityEstimator {
     if (!this.baseline && s.t - this.startT >= this.baselineSec) this.baseline = this.captureBaseline();
   }
 
-  /** Online peak detection on the previous sample, against an adaptive threshold. */
   private detectPeak(): void {
     const n = this.band.length;
     if (n < 3) return;
@@ -330,13 +285,63 @@ export class QualityEstimator {
       };
     }
 
-    // sustained
     return {
       ...base,
       quality: energy,
       cadence: null,
       confidence: b.rms < WEAK_RMS_G ? WEAK_CONFIDENCE : SUSTAINED_CONFIDENCE,
     };
+  }
+}
+
+const FLAT_TILT_DEG = 15;
+const STILL_RAD_PER_SEC = 0.35;
+const ROTATION_TAU_SEC = 0.5;
+const SETTLE_SEC = 1;
+const LIFT_SEC = 0.3;
+
+/** Lying flat and not being handled. Face down counts too; it reads the floor just as well. */
+export class FloorDetector {
+  private readonly grav: [Biquad, Biquad, Biquad];
+  private rotation = 0;
+  private lastT: number | null = null;
+  private changingSince: number | null = null;
+  private flat = false;
+
+  constructor(sampleRate = SAMPLE_RATE) {
+    this.grav = [
+      new Biquad('lowpass', 0.5, sampleRate),
+      new Biquad('lowpass', 0.5, sampleRate),
+      new Biquad('lowpass', 0.5, sampleRate),
+    ];
+  }
+
+  get onFloor(): boolean {
+    return this.flat;
+  }
+
+  push(s: SensorSample): boolean {
+    const dt = this.lastT === null ? 0 : Math.max(0, s.t - this.lastT);
+    this.lastT = s.t;
+    const g: [number, number, number] = [
+      this.grav[0].process(s.ax),
+      this.grav[1].process(s.ay),
+      this.grav[2].process(s.az),
+    ];
+    const spin = Math.hypot(s.gx, s.gy, s.gz);
+    this.rotation += (spin - this.rotation) * Math.min(1, dt / ROTATION_TAU_SEC);
+
+    const candidate = angleDeg(g, [0, 0, g[2] < 0 ? -1 : 1]) < FLAT_TILT_DEG && this.rotation < STILL_RAD_PER_SEC;
+    if (candidate === this.flat) {
+      this.changingSince = null;
+    } else {
+      this.changingSince ??= s.t;
+      if (s.t - this.changingSince >= (candidate ? SETTLE_SEC : LIFT_SEC)) {
+        this.flat = candidate;
+        this.changingSince = null;
+      }
+    }
+    return this.flat;
   }
 }
 

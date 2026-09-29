@@ -36,8 +36,8 @@ So there are two distinct moments, and both are visible on screen:
 | 1 | The engine: strain, graph, signal, learning, simulator | ✅ complete |
 | 2 | Relay, wire protocol, TV-side session controller | ✅ complete |
 | 3 | Vega TV app — all 13 screens | ✅ complete — runs on the Vega Virtual Device |
-| 4 | Phone companion | ⬜ next |
-| 5 | Live integration & tuning | ⬜ |
+| 4 | Phone companion — floor sensor, voice, floor mode | ✅ complete — runs natively in the iOS Simulator; the sensor needs a real iPhone |
+| 5 | Live integration & tuning | ⬜ next |
 | 6 | AWS coach (Bedrock / AgentCore / Strands) | ⬜ |
 | 7 | The learning loop on screen | ⬜ |
 | 8 | Open source, docs, video, submission | ⬜ |
@@ -81,8 +81,12 @@ What the simulator shows today:
 easing during rests. **The generator** plans each session to reach its threshold about two-thirds
 through — *plan to the edge, adapt to stay under*. **Learning** moves the threshold toward the
 strain level at which the person actually asked for easier, aiming 3% below it so that once
-learned, the model steps in first. Every constant in `strain.ts` and `learning.ts` carries its
-reasoning in a comment, including the three design flaws the simulator caught along the way.
+learned, the model steps in first.
+
+The simulator caught three design flaws along the way: a multiplicative learning rule overshot to
+the 0.6 floor and then held people back forever; a plan that absorbed the whole learned bias simply
+re-planned the learning away; and without an energy ceiling, short sessions were built from burpees
+and split jumps.
 
 ### The adaptation graph
 
@@ -122,7 +126,7 @@ packages/core     The engine. Pure TypeScript, zero platform imports (enforced b
 packages/data     Vendored Free Exercise DB + the authored ADAPT home movement pack.
 apps/tv           Vega OS (React Native for Vega) — the Fire TV app. The product.
 apps/tv-fireos    react-native-tvos / Fire OS. Kept as a working fallback, not maintained.
-apps/phone        Expo — the floor sensor and microphone.
+apps/phone        Expo SDK 56 (iOS) — the floor sensor, the microphone, and a big Easier button.
 apps/relay        Fastify + ws — pairing and message bus.
 services/coach    Python — Strands agent on Bedrock AgentCore.
 tools/            Graph builder, headless session simulator, fake sensor.
@@ -157,7 +161,7 @@ OS port a view-layer swap rather than a rewrite.
 | Node | ≥ 20 | developed on 24.6 |
 | **JDK** | **17 or 21** | **not 26** — Gradle 9 does not support it. `temurin-21` works. |
 | Android SDK | platform 34 + 36, `system-images;android-34;android-tv;x86` | |
-| Xcode | 26.x | only for the iOS phone build |
+| Xcode | 26.x | only for the iOS phone build. The phone stays on Expo SDK 56: SDK 57 needs Xcode 27's Swift |
 
 ---
 
@@ -195,11 +199,35 @@ The TV app renders `LiveSession` from `packages/core` and contains no session lo
 
 ### The phone companion
 
+Plug in the iPhone, then:
+
 ```bash
-cd apps/phone && npx expo run:ios --device
+npm install --prefix apps/phone
 ```
 
-Needs a real device: the whole point is the accelerometer, and the simulator has none.
+```bash
+npm run phone:ios
+```
+
+Needs a real device: the whole point is the accelerometer, and the simulator has none. The simulator still
+runs the full pairing and control flow. If `pod install` fails with an encoding error, run it with
+`LANG=en_US.UTF-8`.
+
+The relay address is baked in when the app is built — the build machine's LAN address, where `npm run relay`
+listens. Set `ADAPT_RELAY_URL=ws://<host>:8787/ws` to override it.
+
+What the phone does, and what it deliberately does not:
+
+- **Reads the floor.** Accelerometer and gyroscope at 50 Hz go through the same `QualityEstimator` the
+  simulator uses, inside `SensorSession` from `packages/core` — the fake sensor runs that class too. The
+  phone sends a scored frame twice a second, never raw samples.
+- **Knows where it is.** It reports when it is lying flat and still, and notices when it is picked up, so the
+  TV never adapts on the noise of someone handling it.
+- **Listens for four words** — *easier*, *harder*, *swap this*, *pause* — in short rolling windows, and only
+  while a session runs. Recognition is on-device only; a phone that cannot do that keeps voice off rather
+  than send audio anywhere. Every word also has a button.
+- **Stays dark.** While it lies on the floor during a session the screen drops to minimum brightness, and
+  comes back the moment it is picked up.
 
 ---
 
@@ -238,18 +266,11 @@ npm run console-tv
 npm run fake-sensor -- --code <the code console-tv shows>
 ```
 
-`console-tv` runs the same `LiveSession` class the Vega app renders, so pairing, the per-exercise
-sequence numbers, solo fallback and learning from a spoken "easier" are the real behaviour, printed
-instead of drawn. In `fake-sensor`, press `e` to say "easier" and `d` to drop off the network for
-eight seconds. Both take `--speed 6` to run a 12-minute session in two.
-
---- | --- | --- |
-| TV (Android emulator) | `ws://10.0.2.2:8787` | `10.0.2.2` is the AVD's alias for the host loopback |
-| TV (real Fire TV) | `ws://<your-lan-ip>:8787` | |
-| Phone (real iPhone) | `ws://<your-lan-ip>:8787` | over the same WiFi |
-
-Both hit the same process. If the relay is unreachable the TV runs standalone — a Fire TV and a
-remote alone is a complete product, and the phone only adds automatic adaptation on top of it.
+`console-tv` runs the same `LiveSession` class the Vega app renders, and `fake-sensor` the same
+`SensorSession` the phone runs, so pairing, the per-exercise sequence numbers, solo fallback and
+learning from a spoken "easier" are the real behaviour, printed instead of drawn. In `fake-sensor`,
+press `e` to say "easier", `s` for "swap this", `p` to pause, `r` to resume, and `d` to drop off the
+network for eight seconds. Both take `--speed 6` to run a 12-minute session in two.
 
 ---
 

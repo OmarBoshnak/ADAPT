@@ -15,7 +15,7 @@ export function useLiveSession(ctx: SessionContext, plan: SessionPlan) {
     return () => {
       unsubscribe();
       unlisten();
-      live.stop();
+      live.close();
     };
   }, [live]);
 

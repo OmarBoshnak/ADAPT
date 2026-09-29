@@ -1,15 +1,5 @@
-/**
- * The adaptation graph.
- *
- * Two edges per exercise, because "too hard" and "doesn't suit me" are different problems:
- *
- *   adaptsDownTo    an easier version of the SAME pattern       Jumping Jacks → Step Jacks
- *   substituteWith  a DIFFERENT pattern, same muscles           Jumping Jacks → Standing March
- *
- * The session pool's edges are hand-authored (see @adapt/data). The rest of the corpus gets
- * automatic edges from `autoEdges`, which is conservative on purpose: it would rather leave
- * an edge null than claim "Sit-Up → Wind Sprints" is the same movement.
- */
+// adaptsDownTo: easier version of the same pattern. substituteWith: different pattern, same muscles.
+// Pool edges are hand-authored; automatic edges for the wider corpus prefer null over a wrong pairing.
 
 import { computeIntensity, deriveSignalProfile, deriveTags, patternStem } from './intensity.js';
 import type {
@@ -21,11 +11,6 @@ import type {
   SignalProfile,
 } from './types.js';
 
-// ---------------------------------------------------------------------------
-// Authoring shapes (the data package fills these in)
-// ---------------------------------------------------------------------------
-
-/** Hand-authored fields for a session-pool movement. */
 export interface PoolFields {
   family: string;
   intensity: number;
@@ -36,20 +21,15 @@ export interface PoolFields {
   cue: string;
 }
 
-/** A dataset exercise promoted into the session pool. Curation may only ADD tags. */
+/** Curation may only add tags. */
 export interface PoolCuration extends PoolFields {
   id: string;
   extraTags?: MovementTag[];
 }
 
-/** A movement authored for the ADAPT home pack, in the dataset's own schema. */
 export interface AuthoredExercise extends RawExercise, PoolFields {
   tags: MovementTag[];
 }
-
-// ---------------------------------------------------------------------------
-// Building
-// ---------------------------------------------------------------------------
 
 const union = <T>(a: T[], b: T[]): T[] => [...new Set([...a, ...b])];
 
@@ -73,7 +53,7 @@ function enrichAuthored(a: AuthoredExercise): Exercise {
   return {
     ...raw,
     source: 'adapt-home-pack',
-    // Authored tags are unioned with derived ones — an author can never un-flag a jump.
+    // Union, so an author can never un-flag a jump.
     tags: union(deriveTags(raw), tags),
     family,
     intensity,
@@ -128,10 +108,6 @@ export function buildGraph(input: BuildGraphInput): ExerciseGraph {
   return { version: input.version, exercises, sessionPool };
 }
 
-// ---------------------------------------------------------------------------
-// Automatic edges for the wider corpus
-// ---------------------------------------------------------------------------
-
 const IMPACT_TAGS: MovementTag[] = ['plyometric', 'high-impact'];
 
 function categoryGroup(c: Category): string {
@@ -157,7 +133,6 @@ function addsImpact(from: Exercise, to: Exercise): boolean {
   return IMPACT_TAGS.some((t) => to.tags.includes(t) && !from.tags.includes(t));
 }
 
-/** Minimum intensity gap for a step down to count as genuinely easier. */
 const MIN_STEP_DOWN = 0.3;
 
 export function autoEdges(
@@ -176,7 +151,7 @@ export function autoEdges(
         if (c.category !== ex.category || c.equipment !== ex.equipment) continue;
         if (!sameSet(c.primaryMuscles, ex.primaryMuscles)) continue;
         if (c.intensity > ex.intensity - MIN_STEP_DOWN) continue;
-        // "Easier" must never mean "now with a jump" — a squat does not step down to a jump squat.
+        // Never "easier" by adding a jump.
         if (addsImpact(ex, c)) continue;
         if (!down || c.intensity > down.intensity || (c.intensity === down.intensity && c.id < down.id)) {
           down = c;
@@ -208,10 +183,6 @@ export function autoEdges(
   return out;
 }
 
-// ---------------------------------------------------------------------------
-// Validation — the build fails if any of this is violated
-// ---------------------------------------------------------------------------
-
 export function validateGraph(graph: ExerciseGraph): string[] {
   const problems: string[] = [];
   const pool = new Set(graph.sessionPool);
@@ -227,7 +198,6 @@ export function validateGraph(graph: ExerciseGraph): string[] {
     if (!ex.cue) problems.push(`${id}: no coaching cue`);
     if (!ex.expectedCadence || ex.expectedCadence <= 0) problems.push(`${id}: no expected cadence`);
 
-    // substituteWith — required for every pool movement
     if (!ex.substituteWith) {
       problems.push(`${id}: no substituteWith`);
     } else {
@@ -240,7 +210,6 @@ export function validateGraph(graph: ExerciseGraph): string[] {
       }
     }
 
-    // adaptsDownTo — may be null only at the bottom of a ladder
     if (ex.adaptsDownTo) {
       const down = get(ex.adaptsDownTo);
       if (!down) problems.push(`${id}: adaptsDownTo "${ex.adaptsDownTo}" does not exist`);
@@ -252,7 +221,6 @@ export function validateGraph(graph: ExerciseGraph): string[] {
       }
     }
 
-    // no cycles down the ladder
     const seen = new Set<string>();
     let cur: string | null = id;
     while (cur) {
@@ -269,25 +237,17 @@ export function validateGraph(graph: ExerciseGraph): string[] {
   return problems;
 }
 
-// ---------------------------------------------------------------------------
-// Lookups
-// ---------------------------------------------------------------------------
-
 export function getExercise(graph: ExerciseGraph, id: string): Exercise {
   const ex = graph.exercises[id];
   if (!ex) throw new Error(`Unknown exercise "${id}"`);
   return ex;
 }
 
-/**
- * Pool movements a session may START on. Bottom rungs are excluded: every movement the
- * generator picks must have somewhere easier to go.
- */
+/** Pool movements with somewhere easier to go. */
 export function selectableIds(graph: ExerciseGraph): string[] {
   return graph.sessionPool.filter((id) => graph.exercises[id]?.adaptsDownTo);
 }
 
-/** The rung above `id` in its ladder, for a "harder" correction. */
 export function harderThan(graph: ExerciseGraph, id: string): Exercise | null {
   const above = graph.sessionPool
     .map((p) => graph.exercises[p])
@@ -297,18 +257,11 @@ export function harderThan(graph: ExerciseGraph, id: string): Exercise | null {
 }
 
 export interface Alternatives {
-  /** "IF IT'S TOO HARD" on TV-4b — first eligible rung down the same ladder. */
   easier: Exercise | null;
-  /** "IF IT DOESN'T SUIT YOU" on TV-4b — first eligible different pattern. */
   different: Exercise | null;
 }
 
-/**
- * The two alternatives TV-4b offers, filtered by the profile.
- *
- * An authored edge can point at something this particular person has excluded, so both
- * are resolved by walking: down the ladder for `easier`, along substitutes for `different`.
- */
+/** Walks the edges, since an authored edge can point at something this person has excluded. */
 export function resolveAlternatives(
   graph: ExerciseGraph,
   id: string,

@@ -1,13 +1,4 @@
-/**
- * Deterministic randomness.
- *
- * Every choice the engine makes that is not forced by the data is broken by a seeded
- * generator, never by Math.random. A plan must be exactly reproducible from its seed:
- * that is what lets the demo show the *same* session twice with only the learned
- * threshold changed, and what lets a test assert on a whole generated session.
- */
-
-/** mulberry32 — small, fast, and plenty for tie-breaking. Returns floats in [0, 1). */
+/** mulberry32, [0, 1). */
 export function createRng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -19,7 +10,7 @@ export function createRng(seed: number): () => number {
   };
 }
 
-/** FNV-1a over a string, for deriving seeds from stable inputs. */
+/** FNV-1a. */
 export function hashString(input: string): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < input.length; i++) {
@@ -29,7 +20,7 @@ export function hashString(input: string): number {
   return h >>> 0;
 }
 
-/** Standard normal via Box–Muller, for synthetic sensor noise. */
+/** Box–Muller. */
 export function gaussian(rng: () => number): number {
   const u = Math.max(rng(), 1e-12);
   const v = rng();

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {eligibilityFor, resolveAlternatives, type SessionContext, type SessionPlan, type SessionState} from '@adapt/core';
 
 import {exercise, graph} from '~/exercises/catalog';
@@ -13,8 +13,8 @@ type Props = {ctx: SessionContext; plan: SessionPlan; onComplete: (state: Sessio
 
 export function SessionFlow({ctx, plan, onComplete}: Props) {
   const {live, snapshot} = useLiveSession(ctx, plan);
-  const [swapping, setSwapping] = useState(false);
   const s = snapshot.state;
+  const swapping = snapshot.paused;
   const reported = useRef(false);
   const report = useRef(onComplete);
   report.current = onComplete;
@@ -29,15 +29,8 @@ export function SessionFlow({ctx, plan, onComplete}: Props) {
     if (s.phase === 'complete') finish(s);
   });
 
-  const openSwap = () => {
-    if (swapping || s.phase === 'complete') return;
-    live.pause();
-    setSwapping(true);
-  };
-  const closeSwap = () => {
-    setSwapping(false);
-    live.resume();
-  };
+  const openSwap = () => live.pause();
+  const closeSwap = () => live.resume();
 
   useBack(() => (swapping ? closeSwap() : openSwap()));
 

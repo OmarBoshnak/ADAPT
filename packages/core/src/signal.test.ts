@@ -4,6 +4,7 @@ import {
   BASELINE_SEC,
   Biquad,
   dominantPeriod,
+  FloorDetector,
   impactFeatures,
   QualityEstimator,
   rms,
@@ -153,5 +154,38 @@ describe('QualityEstimator — other profiles', () => {
     for (const s of synthesizeTrace({ profile: 'oscillation', durationSec: 2, cadencePerMin: 90, startT: 20 })) est.push(s);
     expect(est.frame().confidence).toBe(0);
     expect(est.frame().profile).toBe('oscillation');
+  });
+});
+
+describe('FloorDetector', () => {
+  const still = (t: number, az = 1) => ({ t, ax: 0, ay: 0, az, gx: 0, gy: 0, gz: 0 });
+  const run = (d: FloorDetector, from: number, sec: number, sample: (t: number) => Parameters<FloorDetector['push']>[0]) => {
+    for (let i = 0; i < sec * SAMPLE_RATE; i++) d.push(sample(from + i / SAMPLE_RATE));
+    return d.onFloor;
+  };
+
+  it('settles on the floor after a second lying flat and still, face up or down', () => {
+    expect(run(new FloorDetector(), 0, 0.5, still)).toBe(false);
+    expect(run(new FloorDetector(), 0, 2, still)).toBe(true);
+    expect(run(new FloorDetector(), 0, 2, (t) => still(t, -1))).toBe(true);
+  });
+
+  it('stays on the floor through the vibration of someone jumping beside it', () => {
+    const d = new FloorDetector();
+    run(d, 0, 2, still);
+    const jumps = synthesizeTrace({ profile: 'impact', durationSec: 20, cadencePerMin: 70, startT: 2, amplitudeG: 0.6 });
+    jumps.forEach((s) => d.push(s));
+    expect(d.onFloor).toBe(true);
+  });
+
+  it('notices within a moment when it is picked up', () => {
+    const d = new FloorDetector();
+    run(d, 0, 2, still);
+    const handled = (t: number) => ({ t, ax: 0.6, ay: 0.2, az: 0.75, gx: 1.2, gy: 0.4, gz: 0.3 });
+    expect(run(d, 2, 1, handled)).toBe(false);
+  });
+
+  it('does not count a phone propped at an angle', () => {
+    expect(run(new FloorDetector(), 0, 3, (t) => ({ ...still(t), ax: 0.5, az: 0.85 }))).toBe(false);
   });
 });

@@ -1,8 +1,3 @@
-/**
- * The relay over real sockets, with the real RelayClient on both ends — exactly what the TV
- * and the phone will run. Node 22+ provides the same global WebSocket they use.
- */
-
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { RelayClient, type RelayStatus, type protocol } from '@adapt/core';

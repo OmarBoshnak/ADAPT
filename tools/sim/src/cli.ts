@@ -1,18 +1,6 @@
 #!/usr/bin/env node
-/**
- * adapt-sim — the Phase 1 gate.
- *
- *   npm run sim                  the two-session demo arc (default)
- *   npm run sim -- converge      a person whose limit is 20% below the model's guess;
- *                                watch the model learn it over several sessions
- *
- * The demo scenario exits non-zero unless session two adapts VISIBLY sooner than session
- * one after a real correction: the same movement must adapt first in both, and in session
- * two it must fire at most MAX_RELATIVE_POSITION of the way into that movement compared
- * with session one. That is what a viewer actually sees — the TV-7 countdown ring stopping
- * much earlier on the same exercise. It makes this a regression test for the product's
- * closing argument, not just a demo.
- */
+// npm run sim             two-session demo arc; exits non-zero unless session two adapts visibly sooner
+// npm run sim -- converge  a person 20% below the model's guess, over several sessions
 
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -34,31 +22,18 @@ const here = dirname(fileURLToPath(import.meta.url));
 const graphPath = resolve(here, '../../../packages/data/generated/session-graph.json');
 const graph = JSON.parse(readFileSync(graphPath, 'utf8')) as ExerciseGraph;
 
-/**
- * Seed 5 is chosen because its plan puts Jumping Jacks where the model first reaches its
- * threshold, so the unprompted adaptation is the spec's hero moment: Jumping Jacks → Step
- * Jacks. The seed only picks WHICH generated plan is filmed; every adaptation in it is still
- * computed live from strain and signal.
- */
+// Seed 5 puts Jumping Jacks where the model first reaches its threshold.
 const DEMO_SEED = 5;
 
-/** Seconds after the first automatic adaptation that the scripted person says "easier". */
 const SPEAKS_AFTER_SEC = 60;
 
-/**
- * "Visibly sooner", defined by what a viewer sees rather than an absolute number: in
- * session two the same movement must adapt no more than this fraction of the way in that it
- * did in session one, and by at least MIN_GAIN_SEC.
- */
+// Session two must adapt the same movement at most this fraction as far in, and MIN_GAIN_SEC sooner.
 const MAX_RELATIVE_POSITION = 0.6;
 const MIN_GAIN_SEC = 20;
 const ENERGY = 'medium' as const;
 const DURATION_MIN = 12;
 
-/**
- * The demo profile. Deliberately has NO injury: the knee rule excludes all jumping, which
- * would (correctly) remove Jumping Jacks from the plan. See the Phase 1 notes.
- */
+// No injury: the knee rule would (correctly) exclude Jumping Jacks.
 const DEMO_PROFILE: Profile = {
   trainerId: 'sam',
   ageYears: 34,
@@ -71,10 +46,6 @@ const DEMO_PROFILE: Profile = {
   personalBias: 1,
 };
 
-// ---------------------------------------------------------------------------
-// Formatting
-// ---------------------------------------------------------------------------
-
 const mmss = (sec: number) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
 const name = (id: string) => getExercise(graph, id).name;
 
@@ -86,7 +57,7 @@ function chart(series: StrainPoint[], T: number, adaptations: Adaptation[], widt
     const x = Math.min(width - 1, Math.floor((p.t / end) * (width - 1)));
     cols[x] = Math.max(cols[x] as number, p.s);
   }
-  // carry forward gaps (rests sample less often at chart resolution)
+  // Rests sample less often; carry values across the gaps.
   for (let x = 1; x < width; x++) if ((cols[x] as number) < 0) cols[x] = cols[x - 1] as number;
 
   const row = (v: number) => Math.round((v / maxY) * (height - 1));
@@ -154,17 +125,12 @@ function report(title: string, r: RunResult) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Scenarios
-// ---------------------------------------------------------------------------
-
 function demo(): number {
   console.log('\nADAPT — the two-session demo arc');
   console.log('================================');
   console.log(`Session 1: the model adapts on its own; ${SPEAKS_AFTER_SEC} s later the person says "easier".`);
   console.log('Session 2: same person, same plan seed, no words — it should adapt sooner.');
 
-  // Session 1: say "easier" 90 s after the first automatic adaptation.
   let spoken = false;
   const s1 = runSession({
     graph,

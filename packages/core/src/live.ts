@@ -1,23 +1,8 @@
-/**
- * LiveSession — the TV's brain, without the pixels.
- *
- * Owns the clock, drives the session reducer, talks to the phone through whatever `send`
- * it is given, and exposes one snapshot for the screens to render. The Vega app and the
- * console harness in tools/ run this same class; neither contains session logic of its own.
- *
- * Responsibilities, in the order they matter:
- *
- *   1. Solo is a first-class mode. With no phone, or when the phone goes away mid-set, the
- *      session carries on without a pause and without a warning. The phone's last reading is
- *      discarded (SENSOR_LOST) rather than trusted until the end of the session.
- *   2. Every movement change bumps `seq` and is announced to the phone, which re-baselines.
- *      Frames carrying an old `seq` are dropped here, before they reach the model.
- *   3. A correction — spoken on the phone or pressed on the remote — goes through the same
- *      path, and the literal word is surfaced for the TV-8 "heard" bar.
- */
+// Owns the clock, drives the reducer and talks to the phone. The screens only render `snapshot`.
 
-import { getExercise } from './graph.js';
-import type { Message, MessageType, Payload } from './protocol.js';
+import { eligibilityFor } from './contraindications.js';
+import { getExercise, resolveAlternatives } from './graph.js';
+import type { Message, MessageOf, MessageType, Payload } from './protocol.js';
 import type { PeerState } from './relay-client.js';
 import {
   createSession,
@@ -35,27 +20,25 @@ export type Send = <T extends MessageType>(type: T, payload: Payload<T>) => bool
 export interface LiveSessionOptions {
   ctx: SessionContext;
   plan: SessionPlan;
-  /** Outbound to the phone. Omit for a TV with no relay at all. */
   send?: Send;
-  /** Milliseconds, monotonic. Injected so tests control time. */
+  /** Monotonic milliseconds. */
   now?: () => number;
   tickMs?: number;
-  /** No frame for this long while working means the phone has gone quiet. */
   staleFrameMs?: number;
-  /** A tick never advances more than this, so a backgrounded app does not fast-forward. */
+  /** Caps a tick so a backgrounded app does not fast-forward. */
   maxStepSec?: number;
 }
 
 export type Mode = 'paired' | 'solo';
 
+export type Command = MessageOf<'user.command'>['command'];
+
 export interface LiveSnapshot {
   state: SessionState;
-  /** Identifies the movement currently being measured. */
   seq: number;
   mode: Mode;
-  /** Phone reports lying still on the floor. Null when unknown or unpaired. */
+  /** Null when unknown or unpaired. */
   onFloor: boolean | null;
-  /** The last word heard, for TV-8. The screen decides how long to show it. */
   heard: { word: string; atMs: number } | null;
   paused: boolean;
 }
@@ -95,10 +78,6 @@ export class LiveSession {
     };
   }
 
-  // ---------------------------------------------------------------------------
-  // Lifecycle
-  // ---------------------------------------------------------------------------
-
   get snapshot(): LiveSnapshot {
     return this.snap;
   }
@@ -120,6 +99,12 @@ export class LiveSession {
     this.timer = null;
   }
 
+  /** Leaving the session early; the phone would otherwise wait on the last phase it heard. */
+  close(): void {
+    this.stop();
+    if (this.snap.state.phase !== 'complete') this.send?.('session.state', { seq: this.snap.seq, phase: 'idle' });
+  }
+
   pause(): void {
     if (this.snap.paused || this.snap.state.phase === 'complete') return;
     this.set({ paused: true });
@@ -133,7 +118,6 @@ export class LiveSession {
     this.announceState();
   }
 
-  /** Advance the clock. Called by the interval; public so tests and harnesses can drive it. */
   tick(): void {
     const now = this.now();
     const dt = this.lastTickAt === null ? 0 : Math.min(this.maxStepSec, (now - this.lastTickAt) / 1000);
@@ -152,8 +136,7 @@ export class LiveSession {
     }
 
     if (dt > 0) this.dispatch({ type: 'TICK', dtSec: dt });
-    // A method call, not an inline comparison: dispatch() replaced the state, and an inline
-    // check would be narrowed away by the early return above.
+    // A method call so TypeScript does not keep the narrowing from before dispatch().
     if (this.isComplete()) {
       this.stop();
     }
@@ -163,11 +146,6 @@ export class LiveSession {
     return this.snap.state.phase === 'complete';
   }
 
-  // ---------------------------------------------------------------------------
-  // Inputs
-  // ---------------------------------------------------------------------------
-
-  /** "Easier" or "harder" from the remote. Voice arrives through `receive`. */
   correct(direction: CorrectionDirection, source: CorrectionSource = 'button', heard?: string): void {
     if (this.snap.paused || this.snap.state.phase !== 'active') return;
     const before = this.snap.state.corrections.length;
@@ -181,12 +159,22 @@ export class LiveSession {
     if (!this.snap.paused) this.dispatch({ type: 'SKIP' });
   }
 
-  /** Replace the current movement without teaching the model anything about load. */
   swap(exerciseId: string): void {
     this.dispatch({ type: 'SWAP', exerciseId });
   }
 
-  /** Everything the relay client passes up. */
+  command(command: Command): void {
+    if (command === 'pause') return this.pause();
+    if (command === 'resume') return this.resume();
+    if (this.snap.paused || this.snap.state.phase !== 'active') return;
+    const { different } = resolveAlternatives(
+      this.ctx.graph,
+      this.snap.state.currentExerciseId,
+      eligibilityFor(this.ctx.profile),
+    );
+    if (different) this.swap(different.id);
+  }
+
   receive(message: Message): void {
     switch (message.type) {
       case 'sensor.frame': {
@@ -200,6 +188,9 @@ export class LiveSession {
       case 'user.correction':
         this.correct(message.direction, message.source, message.heard);
         return;
+      case 'user.command':
+        this.command(message.command);
+        return;
       case 'sensor.status':
         this.set({ onFloor: message.onFloor });
         return;
@@ -211,7 +202,6 @@ export class LiveSession {
     }
   }
 
-  /** Relay status changes. A phone arriving mid-session is caught up immediately. */
   setPeer(peer: PeerState): void {
     if (peer === 'present') {
       const wasSolo = this.snap.mode === 'solo';
@@ -227,14 +217,9 @@ export class LiveSession {
     }
   }
 
-  /** The forecast behind TV-7's dashed curve. */
   projection(): Projection {
     return projectionFor(this.ctx, this.snap.state);
   }
-
-  // ---------------------------------------------------------------------------
-  // Internals
-  // ---------------------------------------------------------------------------
 
   private set(patch: Partial<LiveSnapshot>): void {
     this.snap = { ...this.snap, ...patch };

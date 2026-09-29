@@ -1,8 +1,3 @@
-/**
- * The relay's network shell: Fastify for HTTP, @fastify/websocket for the rooms. Every rule
- * lives in rooms.ts; this file only adapts sockets to the registry's `Conn` interface.
- */
-
 import { randomBytes, randomInt } from 'node:crypto';
 
 import websocket from '@fastify/websocket';
@@ -15,9 +10,7 @@ export interface RelayOptions {
   host?: string;
   port?: number;
   logger?: boolean;
-  /** How often to ping clients and expire rooms. */
   sweepMs?: number;
-  /** A connection that has not said hello by now is closed. */
   helloTimeoutMs?: number;
   registry?: RegistryOptions;
 }

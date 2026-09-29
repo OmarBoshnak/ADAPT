@@ -1,20 +1,28 @@
+import { useCallback, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import { PairScreen } from '~/features/pair/PairScreen';
+import { SessionScreen } from '~/features/session/SessionScreen';
 
 export default function App() {
+  const [code, setCode] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const leave = useCallback((next?: string) => {
+    setNotice(next ?? null);
+    setCode(null);
+  }, []);
+
+  const pair = useCallback((next: string) => {
+    setNotice(null);
+    setCode(next);
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <StatusBar style="light" />
+      {code ? <SessionScreen key={code} code={code} onLeave={leave} /> : <PairScreen notice={notice} onPair={pair} />}
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

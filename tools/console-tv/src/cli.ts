@@ -1,20 +1,8 @@
 #!/usr/bin/env node
-/**
- * adapt-console-tv — the TV, in a terminal.
- *
- * Runs the same LiveSession class the Vega app renders, so everything here — pairing,
- * seq-stamped exercise announcements, falling back to solo when the phone drops, learning
- * from a spoken "easier" — is the real behaviour, just printed instead of drawn.
- *
- *   npm run console-tv                         paired: shows a code, waits for a phone
- *   npm run console-tv -- --solo               a Fire TV and a remote, nothing else
- *
- * Keys:  enter start    e easier    h harder    p pause/resume    q quit
- *
- *   --minutes 12  --energy medium  --seed 5  --bias 1  --knee
- *   --speed <n>        faster than real time (match fake-sensor's --speed)
- *   --autostart <s>    start this many seconds after launch, or once a phone joins
- */
+// The TV in a terminal, running the same LiveSession the Vega app renders.
+//
+//   npm run console-tv [-- --solo] [--minutes 12 --energy medium --seed 5 --bias 1 --knee --speed n --autostart s]
+//   keys: enter start · e easier · h harder · p pause/resume · q quit
 
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -38,7 +26,6 @@ const graph = JSON.parse(
   readFileSync(resolve(here, '../../../packages/data/generated/session-graph.json'), 'utf8'),
 ) as ExerciseGraph;
 
-// ── args ─────────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const flag = (n: string) => args.includes(`--${n}`);
 const opt = (n: string, d: string) => {
@@ -69,7 +56,6 @@ const profile: Profile = {
 const ctx = { graph, profile, energy };
 const plan = generatePlan({ graph, profile, durationMin: minutes, energy, seed });
 
-// ── scaled clock, shared by the session ──────────────────────────────────────
 const t0 = Date.now();
 const now = () => t0 + (Date.now() - t0) * speed;
 const mmss = (sec: number) => `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
@@ -78,7 +64,6 @@ const name = (id: string) => getExercise(graph, id).name;
 let live: LiveSession | null = null;
 const log = (line: string) => console.log(`[tv ${live ? mmss(live.snapshot.state.sessionElapsedSec) : '--:--'}] ${line}`);
 
-// ── relay ────────────────────────────────────────────────────────────────────
 let lastConn = '';
 let lastPeer = '';
 const relay = solo
@@ -92,7 +77,7 @@ const relay = solo
           lastConn = s.connection;
           if (s.connection === 'open') {
             console.log(`\n   PAIR YOUR PHONE    ${s.code?.split('').join(' ')}\n`);
-            console.log(`   CODE=${s.code}`); // machine-readable, for scripts
+            console.log(`   CODE=${s.code}`);
           } else log(`relay ${s.connection}`);
         }
         if (s.peer !== lastPeer) {
@@ -106,7 +91,6 @@ const relay = solo
     });
 relay?.start();
 
-// ── session ──────────────────────────────────────────────────────────────────
 console.log(`\n${plan.title} · ${solo ? 'solo (TV and remote only)' : 'paired'} · seed ${seed} · bias ${profile.personalBias}`);
 console.log(`plan: ${plan.segments.map((s) => name(s.exerciseId)).join(' → ')}`);
 if (plan.exclusionLabels.length) console.log(`footer: ${plan.exclusionLabels.join(' · ')}`);
@@ -156,7 +140,6 @@ function begin() {
   live.start();
 }
 
-// a status line every (scaled) 15 s
 const status = setInterval(() => {
   if (!live || live.snapshot.state.phase !== 'active') return;
   const s = live.snapshot;
@@ -183,7 +166,6 @@ function finish() {
   shutdown(0);
 }
 
-// ── start ────────────────────────────────────────────────────────────────────
 if (autostart !== null) setTimeout(begin, (autostart * 1000) / speed);
 
 if (process.stdin.isTTY) {

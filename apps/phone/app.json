@@ -14,7 +14,7 @@
       "infoPlist": {
         "NSMotionUsageDescription": "ADAPT reads motion from the phone on the floor beside you to sense how your movement is going, so the workout can adapt.",
         "NSMicrophoneUsageDescription": "ADAPT listens for a short list of workout words like “easier” so you can change the workout without picking anything up.",
-        "NSSpeechRecognitionUsageDescription": "Speech is recognised on this device to match a short list of workout words. Nothing is recorded or sent anywhere.",
+        "NSSpeechRecognitionUsageDescription": "ADAPT uses on-device recognition only, to match a short list of workout words like “easier”. It never records what you say.",
         "UIBackgroundModes": []
       }
     },
@@ -34,7 +34,7 @@
         "expo-speech-recognition",
         {
           "microphonePermission": "ADAPT listens for a short list of workout words like “easier” so you can change the workout without picking anything up.",
-          "speechRecognitionPermission": "Speech is recognised on this device to match a short list of workout words. Nothing is recorded or sent anywhere.",
+          "speechRecognitionPermission": "ADAPT uses on-device recognition only, to match a short list of workout words like “easier”. It never records what you say.",
           "androidSpeechServicePackages": []
         }
       ]

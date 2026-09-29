@@ -1,10 +1,4 @@
 #!/usr/bin/env node
-/**
- * adapt-relay — run on the development machine during development and filming.
- *
- *   npm run relay
- *   PORT=9000 npm run relay
- */
 
 import { networkInterfaces } from 'node:os';
 

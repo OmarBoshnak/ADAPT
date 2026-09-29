@@ -1,26 +1,5 @@
-/**
- * The ADAPT home movement pack.
- *
- * Free Exercise DB has no jumping jacks, no burpees, no high knees and no marching — and
- * only 18 of its 111 equipment-free exercises have an easier peer to step down to. These
- * 22 movements fill that gap: no equipment, living-room sized, and every one of them puts
- * something into the floor so the phone beside you can feel it.
- *
- * Each ladder runs hardest → easiest along `adaptsDownTo`, and several deliberately start
- * on a real dataset entry (see curation.ts): Star Jump → Jumping Jacks, Lateral Bound →
- * Skater Hops, Split Jump → Alternating Reverse Lunges. The two sources are one graph.
- *
- * Intensities are hand-calibrated relative exertion on the same 0–10 scale the strain
- * model uses. They cannot be computed from dataset-style fields — Step Jacks and Toe-Tap
- * Jacks would share every one of them — so they are authored, and the build asserts every
- * ladder strictly descends.
- *
- * Tags listed here are UNIONED with tags derived from the name, never replacing them. An
- * author can add an exclusion; nobody can remove one.
- *
- * `images` is empty until the demonstration photographs are shot. Every screen that shows
- * a photo has a defined fallback tile, so an empty list is a supported state, not a bug.
- */
+// Movements the dataset lacks. Intensities are hand-calibrated and the build asserts every ladder descends.
+// Tags are unioned with derived ones. `images` stays empty until the photos are shot; screens fall back to a tile.
 
 import type { AuthoredExercise } from '@adapt/core';
 
@@ -36,7 +15,7 @@ const entry = (e: Entry): AuthoredExercise => ({
 });
 
 export const HOME_PACK: AuthoredExercise[] = [
-  // ── Jacks ───────────────────────────────────────── Star Jump → here ──────────
+  // Jacks, from Star Jump
   entry({
     id: 'adapt_jumping_jacks',
     name: 'Jumping Jacks',
@@ -102,7 +81,7 @@ export const HOME_PACK: AuthoredExercise[] = [
     cue: 'Small taps, big reach',
   }),
 
-  // ── Knee drive ──────────────────────────────────────────────────────────────
+  // Knee drive
   entry({
     id: 'adapt_high_knees',
     name: 'High Knees',
@@ -166,7 +145,7 @@ export const HOME_PACK: AuthoredExercise[] = [
     cue: 'Steady steps, easy breathing',
   }),
 
-  // ── Lateral ───────────────────────────────────── Lateral Bound → here ────────
+  // Lateral, from Lateral Bound
   entry({
     id: 'adapt_skater_hops',
     name: 'Skater Hops',
@@ -231,7 +210,7 @@ export const HOME_PACK: AuthoredExercise[] = [
     cue: 'Step, touch, and breathe',
   }),
 
-  // ── Burpee ────────────────────────────────────────────────────────────────────
+  // Burpee
   entry({
     id: 'adapt_burpees',
     name: 'Burpees',
@@ -296,7 +275,7 @@ export const HOME_PACK: AuthoredExercise[] = [
     cue: 'Step it out, step it in',
   }),
 
-  // ── Squat ─────────────────────────────────────── Jump Squat → here ───────────
+  // Squat, from Jump Squat
   entry({
     id: 'adapt_squat_calf_raises',
     name: 'Squat to Calf Raise',
@@ -319,7 +298,7 @@ export const HOME_PACK: AuthoredExercise[] = [
     cue: 'Sit back, rise up, heels down',
   }),
 
-  // ── Butt kick ─────────────────────────────── Double Leg Butt Kick → here ─────
+  // Butt kick, from Double Leg Butt Kick
   entry({
     id: 'adapt_butt_kicks',
     name: 'Butt Kicks',
@@ -361,7 +340,7 @@ export const HOME_PACK: AuthoredExercise[] = [
     cue: 'Curl and place, steady pace',
   }),
 
-  // ── Lunge ─────────────────────────────────────── Split Jump → here ───────────
+  // Lunge, from Split Jump
   entry({
     id: 'adapt_alternating_reverse_lunge',
     name: 'Alternating Reverse Lunges',
@@ -405,7 +384,7 @@ export const HOME_PACK: AuthoredExercise[] = [
     cue: 'Tap back, stay tall',
   }),
 
-  // ── Climber ───────────────────────────────── Mountain Climbers → here ────────
+  // Climber, from Mountain Climbers
   entry({
     id: 'adapt_slow_climbers',
     name: 'Slow Mountain Climbers',
@@ -449,7 +428,7 @@ export const HOME_PACK: AuthoredExercise[] = [
     cue: 'Reach and pull, knee to hand',
   }),
 
-  // ── Boxing ────────────────────────────────────────────────────────────────────
+  // Boxing
   entry({
     id: 'adapt_boxer_shuffle',
     name: 'Boxer Shuffle',

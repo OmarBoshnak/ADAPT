@@ -1,18 +1,5 @@
-/**
- * The local session generator.
- *
- * Filter, then select. The profile narrows the pool by exclusion; the generator then picks
- * and sequences from what remains. It never adds anything back, and the cloud coach
- * (Phase 6) is held to exactly the same contract — its output is re-validated against this
- * same exclusion table before a plan reaches the TV.
- *
- * Sizing philosophy: *plan to the edge, adapt to stay under.* A plan is sized so that, at
- * nominal movement quality, predicted strain reaches the threshold about two-thirds of the
- * way through. That is what gives TV-7's "ADAPTS IN ~N MIN" meaning, and what makes an
- * adaptation an expected, designed-for event rather than a failure.
- *
- * Deterministic for a given seed, so a session can be reproduced exactly.
- */
+// Plans are sized so predicted strain reaches the threshold about two-thirds through:
+// plan to the edge, adapt to stay under. Deterministic for a given seed.
 
 import { constraintsFor, exclusionLabels, HIGH_INTENSITY, isExcluded } from './contraindications.js';
 import { getExercise, selectableIds } from './graph.js';
@@ -23,21 +10,12 @@ import type { Energy, Exercise, ExerciseGraph, Profile, SessionPlan, SessionSegm
 export const GET_READY_SEC = 8;
 export const REST_SEC: Record<Energy, number> = { low: 30, medium: 20, high: 15 };
 
-/** Where in the session, at nominal quality, the plan should first reach the threshold. */
 export const TARGET_CROSSING_FRACTION = 0.65;
 
-/** Seeded cost jitter when choosing each slot, in intensity points. */
+/** Seeded jitter per slot, in intensity points. */
 export const VARIETY = 0.9;
 
-/**
- * The hardest a plan may reach for, by stated energy.
- *
- * Without this, a short session cannot reach the threshold two-thirds of the way through no
- * matter what it picks, so the search gave up at the hardest movements in the pool — a
- * 4-minute medium session came out as High Knees → Burpees → Split Jump. That is exactly
- * the session behind TV-10's primary button, "Another 4 minutes", offered to someone who has
- * just finished. A short session should be the same kind of work, just less of it.
- */
+// Without a ceiling, short sessions chase the threshold with burpees and split jumps.
 export const ENERGY_CEILING: Record<Energy, number> = { low: 5.5, medium: 7.0, high: 10 };
 
 const TITLE_NOUN: Record<Energy, string> = { low: 'Easy Cardio', medium: 'Cardio Reset', high: 'Cardio Push' };
@@ -50,15 +28,7 @@ export function exerciseCount(durationMin: number): number {
   return 10;
 }
 
-// ---------------------------------------------------------------------------
-// Timeline helpers, shared with the session reducer
-// ---------------------------------------------------------------------------
-
-/**
- * The session as work/rest blocks from a given point onward — the input to `project`.
- * `currentExerciseId` overrides the plan's movement for the in-progress segment, because
- * an adaptation may already have swapped it.
- */
+/** Remaining work/rest blocks; `currentExerciseId` reflects an adaptation already made. */
 export function blocksFrom(
   plan: SessionPlan,
   graph: ExerciseGraph,
@@ -89,10 +59,6 @@ export function blocksFrom(
   return blocks;
 }
 
-// ---------------------------------------------------------------------------
-// Generation
-// ---------------------------------------------------------------------------
-
 export interface GenerateInput {
   graph: ExerciseGraph;
   profile: Profile;
@@ -114,8 +80,7 @@ export function generatePlan(input: GenerateInput): SessionPlan {
     .map((id) => getExercise(graph, id))
     .filter((ex) => !isExcluded(ex, constraints));
 
-  // A very restrictive profile can exclude every movement that has a step down. Fall back
-  // to the full eligible pool rather than refusing to build a session.
+  // A restrictive profile can exclude every movement with a step down.
   if (candidates.length === 0) {
     candidates = graph.sessionPool.map((id) => getExercise(graph, id)).filter((ex) => !isExcluded(ex, constraints));
   }
@@ -145,8 +110,7 @@ export function generatePlan(input: GenerateInput): SessionPlan {
     return { ids, crossingSec: project(0, T, blocks, 1, 1, 60).secondsUntilThreshold };
   };
 
-  // Binary search the target mean intensity until the plan first crosses near the target
-  // point. The sequence is discrete, so keep the closest draft seen rather than the last.
+  // Drafts are discrete, so keep the closest seen rather than the last.
   const ceiling = ENERGY_CEILING[energy];
   const lo0 = candidates[0]?.intensity ?? 0;
   const hi0 = Math.max(lo0, Math.min(candidates[candidates.length - 1]?.intensity ?? 10, ceiling));
@@ -186,11 +150,6 @@ export function generatePlan(input: GenerateInput): SessionPlan {
   };
 }
 
-/**
- * Pick `n` movements around a target intensity: a gentler opener, then the closest match
- * to the target, avoiding back-to-back movements from the same family and spreading
- * repeats apart when a restricted profile leaves a small pool.
- */
 function sequence(candidates: Exercise[], n: number, target: number, seed: number, ceiling: number): string[] {
   const rng = createRng(seed);
   const used = new Map<string, number>();
@@ -205,13 +164,9 @@ function sequence(candidates: Exercise[], n: number, target: number, seed: numbe
       let cost = Math.abs(ex.intensity - aim);
       if (prev && ex.id === prev.id) cost += 10;
       if (prev && ex.family === prev.family) cost += 2;
-      // A penalty, not a filter: every candidate still draws from the seeded generator, so
-      // plans that never reached above the ceiling are unchanged by it.
+      // A penalty, not a filter, so every candidate still consumes the same random draws.
       if (ex.intensity > ceiling) cost += 5;
       cost += 1.5 * (used.get(ex.id) ?? 0);
-      // Seeded variety. Large enough that any movement within about one intensity point of the
-      // target can win a slot, so consecutive sessions genuinely differ ("Generated fresh" on
-      // TV-4), while the same seed always reproduces the same plan.
       cost += rng() * VARIETY;
       if (cost < bestCost) {
         bestCost = cost;

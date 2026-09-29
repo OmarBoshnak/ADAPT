@@ -183,6 +183,34 @@ describe('LiveSession — listening to the phone', () => {
     expect(l.snapshot.heard).toBeNull();
   });
 
+  it('pauses and resumes on a command from the phone', () => {
+    const l = live();
+    l.start();
+    advance(l, 9);
+    l.receive(make('user.command', { command: 'pause', source: 'voice', heard: 'pause' }));
+    expect(l.snapshot.paused).toBe(true);
+    expect(sent.at(-1)).toMatchObject({ type: 'session.state', payload: { phase: 'paused' } });
+    l.receive(make('user.command', { command: 'resume', source: 'button' }));
+    expect(l.snapshot.paused).toBe(false);
+  });
+
+  it('swaps to a different movement on "swap this" without learning anything', () => {
+    const l = live();
+    l.start();
+    advance(l, 9);
+    l.receive(make('user.command', { command: 'swap', source: 'voice', heard: 'swap this' }));
+    expect(l.snapshot.state.currentExerciseId).toBe('march');
+    expect(l.snapshot.state.corrections).toHaveLength(0);
+    expect(l.snapshot.state.learning).toHaveLength(0);
+  });
+
+  it('ignores "swap this" outside a working segment', () => {
+    const l = live();
+    l.start();
+    l.receive(make('user.command', { command: 'swap', source: 'voice', heard: 'swap this' }));
+    expect(l.snapshot.state.currentExerciseId).toBe('jacks');
+  });
+
   it('tracks whether the phone is on the floor', () => {
     const l = live();
     l.setPeer('present');
@@ -222,6 +250,25 @@ describe('LiveSession — the phone going away', () => {
     const l = live();
     l.receive(make('peer', { role: 'display', status: 'joined' }));
     expect(l.snapshot.mode).toBe('solo');
+  });
+});
+
+describe('LiveSession — closing', () => {
+  it('tells the phone when the session is left early', () => {
+    const l = live();
+    l.start();
+    advance(l, 9);
+    l.close();
+    expect(sent.at(-1)).toMatchObject({ type: 'session.state', payload: { phase: 'idle' } });
+  });
+
+  it('adds nothing after a session that finished', () => {
+    const l = live();
+    l.start();
+    advance(l, 8 + 60 + 10 + 61);
+    const count = sent.length;
+    l.close();
+    expect(sent).toHaveLength(count);
   });
 });
 

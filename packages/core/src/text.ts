@@ -1,10 +1,4 @@
-/**
- * Every sentence the engine hands to a screen.
- *
- * Kept in one place, inside the copy audit's scope, because the spec's language rules are
- * accuracy requirements rather than style: an adaptation reason is never a measurement, a
- * score or a verdict on the user, and nothing here ever interprets a body or a condition.
- */
+// Every sentence the engine hands to a screen, kept inside the copy audit's scope.
 
 import type { LearningOutcome } from './types.js';
 
@@ -15,7 +9,6 @@ const SMALL = [
 ];
 const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty'];
 
-/** 8 → "eight". The spec writes durations in words ("You're eight minutes in"). */
 export function numberToWords(n: number): string {
   const k = Math.round(n);
   if (k < 0) return String(k);
@@ -33,19 +26,13 @@ function minutesPhrase(minutes: number): string {
   return m === 1 ? 'one minute' : `${numberToWords(m)} minutes`;
 }
 
-// ---------------------------------------------------------------------------
-// Adaptation reasons (TV-9 support line)
-// ---------------------------------------------------------------------------
-
 export interface ReasonContext {
   trigger: 'predicted-strain' | 'user-correction';
   action: 'switch' | 'end-segment';
   sessionElapsedSec: number;
-  /** Smoothed movement quality, or null when no floor sensor is contributing. */
   quality: number | null;
 }
 
-/** Below this, the reason names movement quality rather than accumulated load. */
 const QUALITY_REASON_CEILING = 0.75;
 
 export function adaptationReason(ctx: ReasonContext): string {
@@ -65,19 +52,12 @@ export function adaptationReason(ctx: ReasonContext): string {
   return 'This one’s costing more than the plan allowed for.';
 }
 
-// ---------------------------------------------------------------------------
-// Learning card (TV-10)
-// ---------------------------------------------------------------------------
-
 export interface LearningCopy {
   headline: string;
   detail: string;
 }
 
-/**
- * The TV-10 learning card. Returns null when nothing was learned, because the spec is
- * explicit that the card appears only after a real correction — never as encouragement.
- */
+/** Null unless a real correction taught the model something. */
 export function learningCopy(outcome: LearningOutcome | null): LearningCopy | null {
   if (!outcome) return null;
 
@@ -97,7 +77,6 @@ export function learningCopy(outcome: LearningOutcome | null): LearningCopy | nu
   return { headline, detail: 'Next session starts lighter and adapts sooner' };
 }
 
-/** "ADAPTS IN ~2 MIN" on TV-7. Null when no adaptation is expected this session. */
 export function adaptsInLabel(secondsUntil: number | null): string | null {
   if (secondsUntil === null) return null;
   if (secondsUntil < 60) return 'ADAPTS IN <1 MIN';

@@ -135,15 +135,16 @@ describe('RelayClient — traffic', () => {
     expect(messages).toEqual([]);
   });
 
-  it('drops frames while disconnected but holds a correction briefly', () => {
+  it('drops frames while disconnected but holds corrections and commands briefly', () => {
     const { c } = client({ role: 'sensor', code: '4821' });
     c.start();
     expect(c.send('sensor.frame', { seq: 1, t: 0, quality: 1, cadence: null, confidence: 1, profile: 'impact' })).toBe(false);
     expect(c.send('user.correction', { direction: 'easier', source: 'voice', heard: 'easier' })).toBe(true);
+    expect(c.send('user.command', { command: 'pause', source: 'voice', heard: 'pause' })).toBe(true);
     const s = FakeSocket.last();
     s.open();
     s.deliver(welcome());
-    expect(s.sent.map((m) => m.type)).toEqual(['hello', 'user.correction']);
+    expect(s.sent.map((m) => m.type)).toEqual(['hello', 'user.correction', 'user.command']);
   });
 
   it('lets a held correction expire rather than apply it late', () => {

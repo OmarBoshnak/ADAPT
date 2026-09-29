@@ -1,46 +1,27 @@
-/**
- * Intensity, tags and signal profile — derived from Free Exercise DB fields alone.
- *
- * This is the part of the engine that ranks the whole 876-exercise gym corpus, and it is
- * what the open-source `free-exercise-db-graph` package exports. It is deliberately NOT
- * what ranks the living-room session pool: movements like Step Jacks and Toe-Tap Jacks
- * share every field the dataset has (category, level, force, mechanic, equipment,
- * muscles), so no formula over those fields can order them. The pool is hand-calibrated
- * in @adapt/data instead, and `enrich` prefers a curated value whenever one exists.
- *
- * Every constant below is a relative weight, not a physiological measurement. What
- * matters is that the ordering it produces within a movement pattern is sensible — which
- * `intensity.test.ts` checks against pairs any coach would agree on.
- */
+// Ranks the full corpus from dataset fields. The session pool is hand-calibrated in @adapt/data instead,
+// since movements like Step Jacks and Toe-Tap Jacks share every field the dataset has.
 
 import type { Category, MovementTag, RawExercise, SignalProfile } from './types.js';
 
-// ---------------------------------------------------------------------------
-// Intensity
-// ---------------------------------------------------------------------------
-
-/** Typical exertion of each category, before level and load adjust it. */
 const CATEGORY_BASE: Record<Category, number> = {
-  stretching: 1.2, // held positions, minimal load
-  strength: 4.0, // the reference point
-  cardio: 5.0, // sustained rhythmic work
-  plyometrics: 5.5, // repeated explosive landings
-  powerlifting: 5.5, // near-maximal loads, low reps
-  'olympic weightlifting': 6.0, // explosive and loaded
-  strongman: 6.5, // loaded carries and lifts, whole-body
+  stretching: 1.2,
+  strength: 4.0,
+  cardio: 5.0,
+  plyometrics: 5.5,
+  powerlifting: 5.5,
+  'olympic weightlifting': 6.0,
+  strongman: 6.5,
 };
 
-/** Dataset difficulty level. A modest spread: level is coarse and inconsistently applied. */
+// Kept narrow: the dataset applies `level` inconsistently.
 const LEVEL_MULTIPLIER = { beginner: 0.85, intermediate: 1.0, expert: 1.2 } as const;
 
-/** Multi-joint work recruits more mass than single-joint work. */
 function mechanicMultiplier(m: RawExercise['mechanic']): number {
   if (m === 'compound') return 1.15;
   if (m === 'isolation') return 0.85;
-  return 1.0; // null — unknown, so neutral
+  return 1.0;
 }
 
-/** External load raises cost; supportive or light equipment lowers it. */
 const EQUIPMENT_MULTIPLIER: Record<string, number> = {
   barbell: 1.15,
   kettlebells: 1.1,
@@ -49,14 +30,13 @@ const EQUIPMENT_MULTIPLIER: Record<string, number> = {
   'e-z curl bar': 1.0,
   'body only': 1.0,
   other: 1.0,
-  machine: 0.95, // machines stabilise the load
+  machine: 0.95,
   cable: 0.95,
   'exercise ball': 0.9,
   bands: 0.9,
-  'foam roll': 0.5, // recovery tool, not a load
+  'foam roll': 0.5,
 };
 
-/** Bigger muscles cost more to move. Taken as the largest primary mover. */
 const MUSCLE_MASS: Record<string, number> = {
   quadriceps: 1.15,
   glutes: 1.15,
@@ -77,11 +57,9 @@ const MUSCLE_MASS: Record<string, number> = {
   neck: 0.8,
 };
 
-/** Each secondary mover adds a little, capped so a long list cannot dominate. */
 const SECONDARY_MUSCLE_STEP = 0.03;
 const SECONDARY_MUSCLE_CAP = 0.12;
 
-/** A jump anywhere outside the plyometrics category still costs more than its category implies. */
 const PLYOMETRIC_BONUS = 1.0;
 
 const PLYOMETRIC_WORDS = /\b(jump|jumps|jumping|hop|hops|bound|bounds|burpee|burpees|plyo|skip|skipping|tuck)\b/i;
@@ -103,15 +81,10 @@ function muscleMassFactor(ex: RawExercise): number {
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
-/**
- * Soft ceiling. The raw product of the multipliers runs past 10 for heavy expert lifts; a
- * hard clamp would pile them all up at exactly 10 and destroy their ordering. This curve is
- * monotonic, bounded below 10, and near-linear across the range living-room work occupies.
- */
+// Soft ceiling: a hard clamp at 10 would collapse the ordering of heavy expert lifts.
 const SATURATION = 7;
 const saturate = (raw: number) => 10 * (1 - Math.exp(-Math.max(0, raw) / SATURATION));
 
-/** Computed intensity, 0–10, from dataset fields alone. */
 export function computeIntensity(ex: RawExercise): number {
   const base = CATEGORY_BASE[ex.category] ?? CATEGORY_BASE.strength;
   const equipment = EQUIPMENT_MULTIPLIER[ex.equipment ?? 'other'] ?? 1.0;
@@ -128,10 +101,6 @@ export function computeIntensity(ex: RawExercise): number {
   return round1(saturate(raw));
 }
 
-// ---------------------------------------------------------------------------
-// Movement tags — mechanical descriptors used only to exclude
-// ---------------------------------------------------------------------------
-
 interface TagRule {
   tag: MovementTag;
   test: (ex: RawExercise, name: string, text: string) => boolean;
@@ -139,18 +108,10 @@ interface TagRule {
 
 const LEG_MOVERS = new Set(['quadriceps', 'glutes', 'hamstrings']);
 
-/**
- * Whole-word match that tolerates plurals. A bare `\bburpee\b` does not match "Burpees",
- * which once let a burpee through with only one of its four exclusion tags — so every name
- * rule goes through this.
- */
+// Plural-safe: a bare `\bburpee\b` misses "Burpees".
 const words = (...patterns: string[]) => new RegExp(`\\b(?:${patterns.join('|')})(?:e?s)?\\b`);
 
-/**
- * Heuristics over names, instructions and muscles. They are intentionally generous — a
- * false positive only removes a movement for someone who flagged a limitation, while a
- * false negative could leave in a movement they asked to avoid.
- */
+// Deliberately generous: a false positive only removes a movement from someone's options.
 const TAG_RULES: TagRule[] = [
   { tag: 'plyometric', test: (ex) => isPlyometric(ex) },
   {
@@ -215,10 +176,6 @@ export function deriveTags(ex: RawExercise): MovementTag[] {
   return TAG_RULES.filter((r) => r.test(ex, name, text)).map((r) => r.tag);
 }
 
-// ---------------------------------------------------------------------------
-// Signal profile — what a phone on the floor can actually perceive
-// ---------------------------------------------------------------------------
-
 export function deriveSignalProfile(ex: RawExercise): SignalProfile {
   const name = ex.name.toLowerCase();
   if (isPlyometric(ex) && !/\bclimb/.test(name)) return 'impact';
@@ -229,15 +186,7 @@ export function deriveSignalProfile(ex: RawExercise): SignalProfile {
   return 'sustained';
 }
 
-// ---------------------------------------------------------------------------
-// Movement pattern — what "the SAME movement" means for automatic edges
-// ---------------------------------------------------------------------------
-
-/**
- * Ordered most-specific first. Sharing muscles and category is not enough to call two
- * movements the same pattern — "Sit-Up" and "Wind Sprints" share both. Sharing one of
- * these stems is the extra condition that keeps automatic `adaptsDownTo` edges honest.
- */
+// Most specific first. Muscles and category alone would pair "Sit-Up" with "Wind Sprints".
 const PATTERN_STEMS: Array<[string, RegExp]> = [
   ['push-up', /\bpush-?ups?\b|\bpushups\b/],
   ['pull-up', /\b(pull|chin)-?ups?\b/],

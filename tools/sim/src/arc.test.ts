@@ -1,11 +1,3 @@
-/**
- * The product's closing argument, as a test.
- *
- * Runs the same headless simulation as `npm run sim`, against a graph built in memory from
- * source, so `npm test` fails if a change to the engine breaks the two-session demo arc or
- * the learning loop's convergence.
- */
-
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 

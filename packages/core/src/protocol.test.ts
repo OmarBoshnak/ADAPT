@@ -10,6 +10,7 @@ describe('protocol', () => {
       make('session.adapted', { seq: 3, from: 'Jumping Jacks', to: 'Step Jacks', trigger: 'predicted-strain', reason: 'x' }),
       make('sensor.frame', { seq: 3, t: 12.5, quality: 0.8, cadence: 68, confidence: 1, profile: 'impact' }),
       make('user.correction', { direction: 'easier', source: 'voice', heard: 'easier' }),
+      make('user.command', { command: 'swap', source: 'voice', heard: 'swap this' }),
       make('sensor.status', { onFloor: true }),
     ];
     for (const m of messages) {
@@ -44,6 +45,7 @@ describe('protocol', () => {
     expect(FORWARDABLE.display.has('session.exercise')).toBe(true);
     expect(FORWARDABLE.display.has('sensor.frame')).toBe(false);
     expect(FORWARDABLE.sensor.has('user.correction')).toBe(true);
+    expect(FORWARDABLE.sensor.has('user.command')).toBe(true);
     expect(FORWARDABLE.sensor.has('session.exercise')).toBe(false);
     for (const role of ['display', 'sensor'] as const) {
       for (const control of ['hello', 'welcome', 'rejected', 'peer', 'ping', 'pong'] as const) {
