@@ -127,6 +127,31 @@ describe('LiveSession — announcing to the phone', () => {
   });
 });
 
+describe('LiveSession — skipping', () => {
+  it('ends the current movement, but not while paused', () => {
+    const l = live();
+    l.start();
+    advance(l, 9);
+    l.pause();
+    l.skip();
+    expect(l.snapshot.state.phase).toBe('active');
+    l.resume();
+    l.skip();
+    expect(l.snapshot.state.phase).toBe('rest');
+  });
+});
+
+describe('LiveSession — swapping', () => {
+  it('announces the swapped movement to the phone with a fresh seq', () => {
+    const l = live();
+    l.start();
+    advance(l, 9);
+    l.swap('march');
+    expect(l.snapshot.state.currentExerciseId).toBe('march');
+    expect(sent.filter((m) => m.type === 'session.exercise').at(-1)?.payload).toMatchObject({ seq: 2, exerciseId: 'march' });
+  });
+});
+
 describe('LiveSession — listening to the phone', () => {
   it('feeds current frames to the model and drops stale ones', () => {
     const l = live();

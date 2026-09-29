@@ -52,7 +52,13 @@ interface Binding {
   role: Role;
 }
 
+export type RegistryEvent =
+  | { type: 'opened'; code: string }
+  | { type: 'joined' | 'left' | 'lost'; code: string; role: Role }
+  | { type: 'closed'; code: string };
+
 export interface RegistryOptions {
+  onEvent?: (event: RegistryEvent) => void;
   now?: () => number;
   /** Allocates a 4-digit code not currently in use. */
   newCode?: (inUse: (code: string) => boolean) => string;
@@ -96,6 +102,7 @@ export class RoomRegistry {
   private readonly guesses = new Map<string, { count: number; since: number }>();
   private dropped = 0;
 
+  private readonly onEvent: (event: RegistryEvent) => void;
   private readonly now: () => number;
   private readonly newCode: (inUse: (code: string) => boolean) => string;
   private readonly newToken: () => string;
@@ -106,6 +113,7 @@ export class RoomRegistry {
   private readonly guessWindowMs: number;
 
   constructor(opts: RegistryOptions = {}) {
+    this.onEvent = opts.onEvent ?? (() => undefined);
     this.now = opts.now ?? (() => Date.now());
     this.newCode = opts.newCode ?? defaultCode;
     this.newToken = opts.newToken ?? defaultToken;
@@ -173,6 +181,7 @@ export class RoomRegistry {
 
     seat.conn = null;
     seat.goneAt = this.now();
+    this.onEvent({ type: clean ? 'left' : 'lost', code: room.code, role: binding.role });
     this.notifyPeer(room, binding.role, clean ? 'left' : 'lost');
   }
 
@@ -201,6 +210,7 @@ export class RoomRegistry {
         room.sensor?.conn?.close(4404, 'room closed');
         if (room.sensor?.conn) this.bindings.delete(room.sensor.conn.id);
         this.rooms.delete(room.code);
+        this.onEvent({ type: 'closed', code: room.code });
       }
     }
     for (const [addr, g] of this.guesses) if (now - g.since > this.guessWindowMs) this.guesses.delete(addr);
@@ -240,6 +250,7 @@ export class RoomRegistry {
     const code = this.newCode((c) => this.rooms.has(c));
     const room: Room = { code, display: null, sensor: null, lastExercise: null, lastState: null, createdAt: this.now() };
     this.rooms.set(code, room);
+    this.onEvent({ type: 'opened', code });
     this.seat(conn, room, 'display', this.newToken());
   }
 
@@ -277,6 +288,7 @@ export class RoomRegistry {
     this.bindings.set(conn.id, { code: room.code, role });
 
     const peerPresent = !!room[other(role)]?.conn;
+    this.onEvent({ type: 'joined', code: room.code, role });
     conn.send(protocol.encode(protocol.make('welcome', { role, code: room.code, resume, peerPresent })));
     this.notifyPeer(room, role, 'joined');
   }

@@ -177,6 +177,15 @@ export class LiveSession {
     }
   }
 
+  skip(): void {
+    if (!this.snap.paused) this.dispatch({ type: 'SKIP' });
+  }
+
+  /** Replace the current movement without teaching the model anything about load. */
+  swap(exerciseId: string): void {
+    this.dispatch({ type: 'SWAP', exerciseId });
+  }
+
   /** Everything the relay client passes up. */
   receive(message: Message): void {
     switch (message.type) {

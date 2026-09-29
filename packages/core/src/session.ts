@@ -100,6 +100,8 @@ export type SessionEvent =
   | { type: 'QUALITY'; frame: QualityFrame }
   | { type: 'CORRECTION'; direction: CorrectionDirection; source: CorrectionSource; heard?: string }
   | { type: 'SKIP' }
+  /** "Doesn't suit me": a different movement, with nothing learned about load. */
+  | { type: 'SWAP'; exerciseId: string }
   /** The phone went away. Its last reading must not keep steering the model. */
   | { type: 'SENSOR_LOST' };
 
@@ -152,6 +154,10 @@ export function reduce(ctx: SessionContext, state: SessionState, event: SessionE
       return onCorrection(ctx, state, event.direction, event.source, event.heard);
     case 'SKIP':
       return state.phase === 'active' ? endSegment(state) : state;
+    case 'SWAP':
+      return state.phase === 'active' && event.exerciseId !== state.currentExerciseId
+        ? { ...state, currentExerciseId: event.exerciseId, ...freshSignal() }
+        : state;
     case 'SENSOR_LOST':
       return { ...state, ...freshSignal() };
   }

@@ -44,3 +44,7 @@ __pycache__/
 
 # vendored dataset git metadata
 packages/data/vendor/**/.git/
+
+# Vega TV app build output
+apps/tv/build/
+apps/tv/.tmp/

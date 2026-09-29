@@ -173,6 +173,29 @@ describe('corrections — "I learned"', () => {
   });
 });
 
+describe('swap — when a movement does not suit', () => {
+  it('changes the movement without learning or dropping strain', () => {
+    const ctx = ctxFor();
+    let s = run(ctx, createSession(ctx, plan(['jacks', 'march'])), 20);
+    const before = s;
+    s = reduce(ctx, s, { type: 'SWAP', exerciseId: 'march' });
+    expect(s.currentExerciseId).toBe('march');
+    expect(s.strain).toBe(before.strain);
+    expect(s.bias).toBe(before.bias);
+    expect(s.learning).toHaveLength(0);
+    expect(s.adaptations).toHaveLength(0);
+    expect(s.quality).toBeNull();
+  });
+
+  it('is ignored outside a working segment or onto the same movement', () => {
+    const ctx = ctxFor();
+    const ready = createSession(ctx, plan(['jacks']));
+    expect(reduce(ctx, ready, { type: 'SWAP', exerciseId: 'march' })).toBe(ready);
+    const active = run(ctx, ready, 10);
+    expect(reduce(ctx, active, { type: 'SWAP', exerciseId: 'jacks' })).toBe(active);
+  });
+});
+
 describe('quality frames', () => {
   const frame = (t: number, quality: number, confidence = 1, profile: 'impact' | 'oscillation' = 'impact') => ({
     type: 'QUALITY' as const,

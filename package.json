@@ -30,8 +30,11 @@
     "relay": "tsc --build && node apps/relay/dist/main.js",
     "fake-sensor": "tsc --build && node tools/fake-sensor/dist/cli.js",
     "audit:copy": "bash scripts/audit-copy.sh",
-    "verify": "npm run typecheck && npm run lint && npm test && npm run audit:copy",
-    "console-tv": "tsc --build && node tools/console-tv/dist/cli.js"
+    "verify": "npm run typecheck && npm run tv:typecheck && npm run lint && npm test && npm run tv:test && npm run audit:copy",
+    "console-tv": "tsc --build && node tools/console-tv/dist/cli.js",
+    "tv:typecheck": "tsc -p apps/tv --noEmit",
+    "tv:test": "npm --prefix apps/tv test",
+    "tv:build": "tsc --build && npm --prefix apps/tv run build:release"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

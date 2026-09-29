@@ -1,0 +1,26 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "types": [
+      "jest",
+      "@amazon-devices/react-native-kepler"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [
+        "src/*"
+      ],
+      "@adapt/core": [
+        "../../packages/core/dist/index.d.ts"
+      ],
+      "@adapt/data/session-graph.json": [
+        "../../packages/data/generated/session-graph.json"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "test",
+    "index.js"
+  ]
+}

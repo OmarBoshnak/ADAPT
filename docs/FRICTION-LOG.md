@@ -212,6 +212,63 @@ Virtual Device, reverse port forwarding for a device over USB, and the machine's
 
 ---
 
+## FL-008 — A custom Metro `resolveRequest` silently removes Vega's React Native, and the app crashes on launch
+
+- **Date:** 2026-09-28
+- **Platform/tool:** Vega — Metro configuration / `build-vega`
+- **Severity:** blocker
+
+**Task attempted.** Add a `~/` import alias to a Vega app, the most common Metro customisation there is.
+
+**Steps taken.** Added a `resolver.resolveRequest` to `metro.config.js`, merged over `getDefaultConfig()` exactly as
+the React Native docs describe.
+
+**Expected.** Either a working build, or a build-time error.
+
+**Actual.** The build succeeded with zero manifest errors. The app installed, launched, and died instantly with
+SIGABRT on the JS thread. The cause was only visible after pulling the crash tombstone with `vega device copy-logs
+--artifact SYSTEM_TOMBSTONE/acr`: `TypeError: Cannot read property 'select' of undefined` deep inside React Native's
+`UIManager`. Vega's `react-native` → `@amazon-devices/react-native-kepler` redirect is installed as the *framework
+default* `resolveRequest` inside `getDefaultConfig()`; any app-level `resolveRequest` replaces it, the stock
+`react-native` gets bundled instead, and its `Platform` has no Vega implementation. Nothing in the build output
+hints at this — the only visible sign is the app bundle being twice its correct size (3.9 MB instead of 1.8 MB).
+
+**Workaround.** Capture `getDefaultConfig().resolver.resolveRequest` and delegate to it from the custom resolver.
+
+**Suggestion.** Either wrap app resolvers rather than being replaced by them, or fail the build when stock
+`react-native` modules end up in a Vega bundle — a one-line check that would have turned an hour of tombstone
+archaeology into an immediate, readable error. A note in the Metro section of the Vega docs would help too.
+
+**What worked well, for balance.** The tombstone itself was excellent: a full, symbolicated JavaScript stack in the
+crash report, one CLI command away.
+
+---
+
+## FL-009 — No way to screenshot the Vega Virtual Device from the CLI
+
+- **Date:** 2026-09-28
+- **Platform/tool:** Vega Virtual Device — development tooling
+- **Severity:** major
+
+**Task attempted.** Capture the screen of the Virtual Device to verify UI, for automated checks and for the demo
+video's still frames.
+
+**Steps taken.** Looked for a `vega device screenshot` command (there is none). Tried the device's own
+`screenshooter` over `vda shell` (fails: `creating a buffer file for 8294400 B failed: Permission denied` as
+`app_user`; `vda root` is refused on production images). Tried QEMU's QMP `screendump` on the exposed socket (returns a
+correct 1920×1080 frame that is entirely black — the display is GPU-composited). macOS window capture works only
+after granting the host app Screen Recording permission.
+
+**Expected.** `vega device screenshot out.png`, as `adb exec-out screencap` provides on Android.
+
+**Actual.** No supported path. Everything else needed for automated UI testing exists — `inputd-cli button_press
+KEY_DOWN` injects remote presses perfectly — which makes the missing screenshot the single gap.
+
+**Suggestion.** Add `vega device screenshot`, or let `screenshooter` run for dev-mode shells. It would make automated
+visual checks possible, and every developer recording a submission video needs it.
+
+---
+
 <!--
 Template for new entries:
 

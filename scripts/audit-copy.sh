@@ -27,6 +27,9 @@ EXCLUDES=(
   --exclude=*.d.ts
   # Tests specify these rules, so they necessarily name the forbidden words.
   --exclude=*.test.ts
+  --exclude=*.test.tsx
+  --exclude=*.spec.ts
+  --exclude=*.spec.tsx
   --exclude=package-lock.json
   --exclude-dir=node_modules
   --exclude-dir=dist

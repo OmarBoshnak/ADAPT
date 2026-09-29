@@ -181,6 +181,16 @@ describe('forwarding', () => {
   });
 });
 
+describe('events', () => {
+  it('reports rooms opening, peers joining and leaving', () => {
+    const events: string[] = [];
+    const r = registry({ onEvent: (e) => events.push('role' in e ? `${e.type}:${e.role}` : e.type) });
+    const { phone } = paired(r);
+    r.disconnect(phone, false);
+    expect(events).toEqual(['opened', 'joined:display', 'joined:sensor', 'lost:sensor']);
+  });
+});
+
 describe('connections coming and going', () => {
   it('tells the TV "left" on a clean close and "lost" on a dropped one', () => {
     const clean = registry();

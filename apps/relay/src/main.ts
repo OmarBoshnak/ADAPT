@@ -13,7 +13,18 @@ import { startRelay } from './server.js';
 const port = Number(process.env.PORT ?? 8787);
 const verbose = process.argv.includes('--verbose');
 
-const relay = await startRelay({ port, logger: verbose });
+const stamp = () => new Date().toLocaleTimeString();
+const relay = await startRelay({
+  port,
+  logger: verbose,
+  registry: {
+    onEvent: (e) => {
+      if (e.type === 'opened') console.log(`[${stamp()}] room ${e.code} opened`);
+      else if (e.type === 'closed') console.log(`[${stamp()}] room ${e.code} closed`);
+      else console.log(`[${stamp()}] ${e.role === 'display' ? 'TV' : 'phone'} ${e.type} room ${e.code}`);
+    },
+  },
+});
 
 const lan = Object.values(networkInterfaces())
   .flat()

@@ -34,9 +34,9 @@ So there are two distinct moments, and both are visible on screen:
 | --- | --- | --- |
 | 0 | Monorepo, dataset, TV + phone scaffolds, emulator, Vega SDK | ✅ complete |
 | 1 | The engine: strain, graph, signal, learning, simulator | ✅ complete |
-| 2 | Relay, wire protocol, TV-side session controller | ✅ complete — 231 tests |
-| 3 | TV app — 13 screens | ⬜ next |
-| 4 | Phone companion | ⬜ |
+| 2 | Relay, wire protocol, TV-side session controller | ✅ complete |
+| 3 | Vega TV app — all 13 screens | ✅ complete — runs on the Vega Virtual Device |
+| 4 | Phone companion | ⬜ next |
 | 5 | Live integration & tuning | ⬜ |
 | 6 | AWS coach (Bedrock / AgentCore / Strands) | ⬜ |
 | 7 | The learning loop on screen | ⬜ |
@@ -163,32 +163,37 @@ OS port a view-layer swap rather than a rewrite.
 
 ## Running it
 
-### 1. The TV app
-
 ```bash
 npm install
 ```
 
-Create the Android TV emulator once:
+### The TV app on the Vega Virtual Device
+
+Install the [Vega SDK](https://developer.amazon.com/docs/vega/latest/install-vega-sdk.html) (use
+`vega sdk install --non-interactive` from scripts), then:
 
 ```bash
-$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n AdaptFireTV -k "system-images;android-34;android-tv;x86" -d tv_1080p
-```
-
-Boot it, then build and run:
-
-```bash
-$ANDROID_HOME/emulator/emulator -avd AdaptFireTV -gpu auto
+npm install --prefix apps/tv
 ```
 
 ```bash
-cd apps/tv && JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home npx react-native run-android
+vega virtual-device start
 ```
 
-Drive it with the arrow keys — the AVD is configured with `hw.keyboard=yes`, so host arrows act as
-the D-pad.
+```bash
+npm run tv:build
+```
 
-### 2. The phone companion
+```bash
+vega run-app apps/tv/build/x86_64-release/adapttv_x86_64.vpkg com.adapt.tv.main
+```
+
+Start the relay first (`npm run relay`) if you want the phone; without it the TV runs solo.
+
+The TV app renders `LiveSession` from `packages/core` and contains no session logic of its own. The Fire OS app in
+`apps/tv-fireos` is a working fallback scaffold on the same React Native version.
+
+### The phone companion
 
 ```bash
 cd apps/phone && npx expo run:ios --device

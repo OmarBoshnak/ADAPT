@@ -56,7 +56,21 @@ react-native-tvos (`trapFocus`, `FocusManager`, `Navigable`), so D-pad work tran
 shells, and the `--non-interactive` flag that fixes it is undocumented in the install guide
 (FL-005). The API overview omits whole capability categories such as networking (FL-003).
 
-**Onboarding.** *(fill in during Phase 3)*
+**Building on it (Phase 3).** The TV app is React Native 0.83 on Vega. Porting 13 designed screens went smoothly:
+`Pressable` focus events, `hasTVPreferredFocus` and `TVFocusGuideView` with `trapFocusLeft/Right` covered every
+navigation need, the ported `react-native-svg` drew the live strain chart unchanged, and AsyncStorage is built into
+the platform package. Custom fonts load by filename from `assets/fonts/` with no configuration. A WebSocket from
+inside the app reached a relay on the host at `10.0.2.2` first time. `inputd-cli button_press` made it possible to
+drive the entire onboarding-to-workout flow unattended.
+
+**The two sharp edges** were a custom Metro resolver silently removing Vega's React Native (FL-008 — a build-time
+check would fix it) and the lack of any CLI screenshot (FL-009).
+
+**Onboarding.** Good once past the installer (FL-005): the `helloWorld` template builds in under a minute, and a
+release package with Hermes bytecode is about 1 MB.
+
+**Would we build with it again?** Yes. The platform itself was never the obstacle — the gaps are all in tooling and
+documentation, and each has a small, specific fix.
 
 ---
 
