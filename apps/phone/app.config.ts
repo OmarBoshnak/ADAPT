@@ -13,6 +13,11 @@ function lanAddress(): string {
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...(config as ExpoConfig),
+  ios: {
+    ...config.ios,
+    // Each developer signs with their own team, set in the gitignored .env.local.
+    ...(process.env.APPLE_TEAM_ID ? { appleTeamId: process.env.APPLE_TEAM_ID } : {}),
+  },
   extra: {
     ...config.extra,
     relayUrl: process.env.ADAPT_RELAY_URL ?? `ws://${lanAddress()}:8787/ws`,

@@ -1,17 +1,25 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import type {SessionSummary} from '@adapt/core';
+import {acceptNarrative, type CoachNarrativeRequest, type SessionSummary} from '@adapt/core';
 
+import {askCoach} from '~/state/coach';
 import {colors, px, radius, type} from '~/theme';
 import {Button} from '~/ui/Button';
 import {Icon} from '~/ui/Icon';
 import {Screen} from '~/ui/Screen';
 import {SessionTimeline} from './SessionTimeline';
 
-type Props = {title: string; summary: SessionSummary; onMore: () => void; onDone: () => void};
+type Props = {
+  title: string;
+  summary: SessionSummary;
+  narrative: CoachNarrativeRequest | null;
+  onMore: () => void;
+  onDone: () => void;
+};
 
-export function SummaryScreen({title, summary, onMore, onDone}: Props) {
+export function SummaryScreen({title, summary, narrative, onMore, onDone}: Props) {
   const {learning} = summary;
+  const coachLine = useCoachLine(narrative);
 
   return (
     <Screen>
@@ -31,7 +39,7 @@ export function SummaryScreen({title, summary, onMore, onDone}: Props) {
           <View style={styles.learningText}>
             <Text style={styles.learningEyebrow}>What changed</Text>
             <Text style={styles.learningHeadline}>{learning.headline}</Text>
-            <Text style={type.body(30)}>{learning.detail}</Text>
+            <Text style={type.body(30)}>{coachLine ?? learning.detail}</Text>
           </View>
         </View>
       )}
@@ -41,6 +49,22 @@ export function SummaryScreen({title, summary, onMore, onDone}: Props) {
       </View>
     </Screen>
   );
+}
+
+/** The coach's own sentence for the learning card, when it answers in time and passes the copy rules. */
+function useCoachLine(request: CoachNarrativeRequest | null): string | null {
+  const [line, setLine] = useState<string | null>(null);
+  useEffect(() => {
+    if (!request) return;
+    let live = true;
+    askCoach(request).then(reply => {
+      if (live && reply) setLine(acceptNarrative(reply));
+    });
+    return () => {
+      live = false;
+    };
+  }, [request]);
+  return line;
 }
 
 function Stat({label, value, caption}: {label: string; value: string; caption?: string}) {

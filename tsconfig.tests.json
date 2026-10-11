@@ -15,6 +15,9 @@
       ],
       "@adapt/data": [
         "./packages/data/src/index.ts"
+      ],
+      "@adapt/data/fixtures": [
+        "./packages/data/src/fixtures.ts"
       ]
     }
   },

@@ -1,5 +1,13 @@
 import React, {useState} from 'react';
-import {summaryFor, type Profile, type SessionPlan, type SessionState, type SessionSummary} from '@adapt/core';
+import {
+  narrativeRequest,
+  summaryFor,
+  type CoachNarrativeRequest,
+  type Profile,
+  type SessionPlan,
+  type SessionState,
+  type SessionSummary,
+} from '@adapt/core';
 
 import {config} from './config';
 import {graph} from './exercises/catalog';
@@ -22,7 +30,13 @@ type Route =
   | {name: 'setup'}
   | {name: 'generating'; request: SessionRequest}
   | {name: 'session'; request: SessionRequest; plan: SessionPlan}
-  | {name: 'summary'; request: SessionRequest; plan: SessionPlan; summary: SessionSummary};
+  | {
+      name: 'summary';
+      request: SessionRequest;
+      plan: SessionPlan;
+      summary: SessionSummary;
+      narrative: CoachNarrativeRequest | null;
+    };
 
 export function App() {
   return (
@@ -65,7 +79,7 @@ function Root() {
       stats: {sessions: stats.sessions + 1, adaptations: stats.adaptations + state.adaptations.length},
     };
     save(next);
-    setRoute({name: 'summary', request, plan, summary: summaryFor(ctx, state)});
+    setRoute({name: 'summary', request, plan, summary: summaryFor(ctx, state), narrative: narrativeRequest(ctx, state)});
   };
 
   switch (current.name) {
@@ -96,6 +110,7 @@ function Root() {
           profile={profile}
           request={current.request}
           seed={config.demoSeed ?? stats.sessions + 1}
+          useCoach={config.demoSeed === null}
           onReady={plan => setRoute({name: 'session', request: current.request, plan})}
         />
       );
@@ -112,6 +127,7 @@ function Root() {
         <SummaryScreen
           title={current.plan.title}
           summary={current.summary}
+          narrative={current.narrative}
           onMore={() => setRoute({name: 'generating', request: {minutes: 4, energy: current.request.energy}})}
           onDone={() => setRoute({name: 'home'})}
         />

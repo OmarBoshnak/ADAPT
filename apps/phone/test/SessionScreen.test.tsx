@@ -14,7 +14,7 @@ const mockLink = {
 
 jest.mock('~/state/link', () => ({ useSensorLink: () => mockLink }));
 jest.mock('~/hooks/useMotion', () => ({ useMotion: () => true }));
-jest.mock('~/hooks/useVoice', () => ({ useVoice: () => 'listening' }));
+jest.mock('~/hooks/useVoice', () => ({ useVoice: jest.fn(() => 'listening') }));
 jest.mock('~/hooks/useFloorDim', () => ({ useFloorDim: jest.fn() }));
 
 async function show(s: Partial<SensorSnapshot>, r: Partial<RelayStatus> = {}, onLeave = jest.fn()) {
@@ -24,7 +24,10 @@ async function show(s: Partial<SensorSnapshot>, r: Partial<RelayStatus> = {}, on
   return onLeave;
 }
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.requireMock('~/hooks/useVoice').useVoice.mockReturnValue('listening');
+});
 
 describe('SessionScreen', () => {
   it('sends a pressed "easier" and echoes it', async () => {
@@ -64,5 +67,12 @@ describe('SessionScreen', () => {
   it('returns to pairing with the reason when the TV refuses the code', async () => {
     const onLeave = await show({}, { connection: 'rejected', rejectedReason: 'unknown-code' });
     expect(onLeave).toHaveBeenCalledWith(expect.stringMatching(/No TV is showing that code/));
+  });
+
+  it('says plainly when voice is off, and keeps the buttons', async () => {
+    jest.requireMock('~/hooks/useVoice').useVoice.mockReturnValue('denied');
+    await show({ phase: 'active', exercise: jumpingJacks });
+    expect(screen.getByText('Voice is off. Allow the microphone and speech recognition in Settings.')).toBeTruthy();
+    expect(screen.getByText('Easier')).toBeTruthy();
   });
 });

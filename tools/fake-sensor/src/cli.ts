@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The phone, without a phone: synthesises floor vibration and runs it through the same SensorSession the phone uses.
 //
-//   npm run fake-sensor -- --code 4821 [--easier-after s] [--drop-after s] [--strong] [--speed n]
+//   npm run fake-sensor -- --code 4821 [--replay [dir]] [--easier-after s] [--drop-after s] [--strong] [--speed n]
 //   keys: e easier · h harder · s swap this · p pause · r resume · d drop off the network for 8 s · q quit
 
 import {
@@ -10,9 +10,13 @@ import {
   SAMPLE_RATE,
   SensorSession,
   synthesizeTrace,
+  unpackTrace,
   type Command,
+  type MeasuredExercise,
   type SensorSample,
+  type Trace,
 } from '@adapt/core';
+import { FIXTURES_DIR, loadTraces } from '@adapt/data/fixtures';
 
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(`--${name}`);
@@ -31,11 +35,16 @@ const speed = Number(opt('speed', '1'));
 const strong = flag('strong');
 const easierAfter = opt('easier-after') ? Number(opt('easier-after')) : null;
 const dropAfter = opt('drop-after') ? Number(opt('drop-after')) : null;
+const replayArg = opt('replay');
+const replayDir = flag('replay') ? (replayArg && !replayArg.startsWith('--') ? replayArg : FIXTURES_DIR) : null;
+const recorded = replayDir ? loadTraces(replayDir).map((r) => r.trace) : [];
+if (replayDir && !recorded.length) console.warn(`No traces in ${replayDir}; falling back to synthetic floor vibration.`);
 
 const log = (line: string) => console.log(`[phone ${clockLabel()}] ${line}`);
 
 let trace: SensorSample[] = [];
 let traceIndex = 0;
+let loopFrom = 0;
 let sampleT = 0;
 let measuredSeq: number | null = null;
 let firstExerciseAt: number | null = null;
@@ -82,23 +91,39 @@ const session = new SensorSession({ send: (type, payload) => client.send(type, p
 session.subscribe((s) => {
   if (!s.exercise || s.exercise.seq === measuredSeq) return;
   measuredSeq = s.exercise.seq;
+  const real = pickRecording(s.exercise);
+  trace = real ? unpackTrace(real) : synthesize(s.exercise);
+  // A recording shorter than the segment keeps replaying its final stretch, so a fade stays faded.
+  loopFrom = real ? Math.floor(trace.length * 0.7) : 0;
+  traceIndex = 0;
+  firstExerciseAt ??= scaledNow();
+  const source = real ? `recorded ${real.take} ${real.name}` : 'synthetic';
+  log(`measuring ${s.exercise.name} (seq ${s.exercise.seq}, ${s.exercise.profile}, ${source})`);
+});
+client.start();
+
+function pickRecording(ex: MeasuredExercise): Trace | undefined {
+  const takes = strong ? ['steady', 'fading'] : ['fading', 'steady'];
+  const ranked = recorded
+    .filter((t) => t.take !== 'pickup' && (t.name === ex.name || t.profile === ex.profile))
+    .sort((a, b) => Number(b.name === ex.name) - Number(a.name === ex.name) || takes.indexOf(a.take) - takes.indexOf(b.take));
+  return ranked[0];
+}
+
+function synthesize(ex: MeasuredExercise): SensorSample[] {
   const into = firstExerciseAt === null ? 0 : scaledNow() - firstExerciseAt;
   const perMin = strong ? 0 : 0.35 * (1 + into / 300);
   const fade = (t: number) => Math.max(0.35, 1 - (perMin * t) / 60);
-  trace = synthesizeTrace({
-    profile: s.exercise.profile,
+  return synthesizeTrace({
+    profile: ex.profile,
     durationSec: 600,
-    cadencePerMin: s.exercise.expectedCadence ?? 60,
+    cadencePerMin: ex.expectedCadence ?? 60,
     fade,
     jitter: (t) => 0.04 + 0.12 * (1 - fade(t)),
     pace: (t) => 1 - 0.15 * (1 - fade(t)),
-    seed: hashString(`${s.exercise.seq}:${s.exercise.name}`),
+    seed: hashString(`${ex.seq}:${ex.name}`),
   });
-  traceIndex = 0;
-  firstExerciseAt ??= scaledNow();
-  log(`measuring ${s.exercise.name} (seq ${s.exercise.seq}, ${s.exercise.profile})`);
-});
-client.start();
+}
 
 const quiet = synthesizeTrace({ profile: 'static', durationSec: 10, cadencePerMin: 0 });
 const LOOP_MS = 100;
@@ -107,6 +132,7 @@ const perLoop = Math.round((SAMPLE_RATE * speed * LOOP_MS) / 1000);
 const loop = setInterval(() => {
   if (dropped) return;
   for (let i = 0; i < perLoop; i++) {
+    if (session.measuring && traceIndex >= trace.length) traceIndex = loopFrom;
     const source = session.measuring ? trace[traceIndex++] : quiet[Math.round(sampleT * SAMPLE_RATE) % quiet.length];
     if (!source) break;
     session.push({ ...source, t: sampleT });

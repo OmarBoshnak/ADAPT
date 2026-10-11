@@ -1,0 +1,17 @@
+{
+  "name": "@adapt/tune",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Scores recorded floor traces with the real estimators and checks each against what its take should produce.",
+  "type": "module",
+  "bin": {
+    "adapt-tune": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "dependencies": {
+    "@adapt/core": "*",
+    "@adapt/data": "*"
+  }
+}

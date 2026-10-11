@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "const": "narrative"
+    },
+    "minutes": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "adaptations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "atSec": {
+            "type": "number",
+            "minimum": 0
+          },
+          "from": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "to": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "predicted-strain",
+              "user-correction"
+            ]
+          }
+        },
+        "required": [
+          "atSec",
+          "from",
+          "to",
+          "trigger"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "corrections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "atSec": {
+            "type": "number",
+            "minimum": 0
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "easier",
+              "harder"
+            ]
+          }
+        },
+        "required": [
+          "atSec",
+          "direction"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "earlySec": {
+      "type": "number",
+      "minimum": 0
+    },
+    "biasBefore": {
+      "type": "number"
+    },
+    "biasAfter": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "task",
+    "minutes",
+    "adaptations",
+    "corrections",
+    "earlySec",
+    "biasBefore",
+    "biasAfter"
+  ],
+  "additionalProperties": false
+}

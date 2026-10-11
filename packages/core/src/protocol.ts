@@ -11,7 +11,7 @@ export const PAIRING_CODE = /^\d{4}$/;
 
 const v = z.literal(PROTOCOL_VERSION);
 const role = z.enum(['display', 'sensor']);
-const profile = z.enum(['impact', 'oscillation', 'sustained', 'static']);
+export const SignalProfileSchema = z.enum(['impact', 'oscillation', 'sustained', 'static']);
 const phase = z.enum(['idle', 'getready', 'active', 'adapting', 'rest', 'paused', 'complete']);
 const unit = z.number().min(0).max(1);
 
@@ -58,7 +58,7 @@ export const SessionExercise = z.object({
   seq: z.number().int().nonnegative(),
   exerciseId: z.string().max(80),
   name: z.string().max(80),
-  signalProfile: profile,
+  signalProfile: SignalProfileSchema,
   expectedCadence: z.number().positive().nullable(),
   durationSec: z.number().positive(),
 });
@@ -88,7 +88,7 @@ export const SensorFrame = z.object({
   quality: unit,
   cadence: z.number().nonnegative().nullable(),
   confidence: unit,
-  profile,
+  profile: SignalProfileSchema,
 });
 
 export const UserCorrection = z.object({

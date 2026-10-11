@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "const": "plan"
+    },
+    "minutes": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "energy": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "count": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "targetIntensity": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "additionalProperties": false
+    },
+    "candidates": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,80}$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "intensity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "family": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "signal": {
+            "type": "string",
+            "enum": [
+              "impact",
+              "oscillation",
+              "sustained",
+              "static"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "intensity",
+          "family",
+          "signal"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "task",
+    "minutes",
+    "energy",
+    "count",
+    "targetIntensity",
+    "candidates"
+  ],
+  "additionalProperties": false
+}

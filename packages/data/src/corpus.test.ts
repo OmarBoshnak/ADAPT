@@ -4,10 +4,12 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import {
+  acceptCoachPlan,
   buildGraph,
   eligibilityFor,
   generatePlan,
   getExercise,
+  planRequest,
   resolveAlternatives,
   selectableIds,
   validateGraph,
@@ -187,5 +189,23 @@ describe('short sessions', () => {
       }
     }
     expect(hard.size).toBeGreaterThan(0);
+  });
+});
+
+describe('the coach contract against the real corpus', () => {
+  it('accepts every plan the local generator builds, so the checks are never stricter than the fallback', () => {
+    const profiles: Array<Partial<Profile>> = [{}, { injuries: ['knee'] }, { conditions: ['asthma'] }, { ageYears: 68 }];
+    for (const p of profiles) {
+      for (const durationMin of [4, 8, 12, 20]) {
+        for (const energy of ['low', 'medium', 'high'] as const) {
+          for (const seed of [1, 5, 9]) {
+            const input = { graph, profile: profile(p), durationMin, energy, seed };
+            const ids = generatePlan(input).segments.map((s) => s.exerciseId);
+            const check = acceptCoachPlan(input, planRequest(input), { exerciseIds: ids, title: '', rationale: '' });
+            expect(check.ok ? 'ok' : `${JSON.stringify(p)} ${durationMin}m ${energy} #${seed}: ${check.reasons}`).toBe('ok');
+          }
+        }
+      }
+    }
   });
 });

@@ -11,7 +11,10 @@
     "tools/build-graph",
     "tools/sim",
     "tools/fake-sensor",
-    "tools/console-tv"
+    "tools/console-tv",
+    "tools/tune",
+    "tools/contract",
+    "oss/free-exercise-db-graph"
   ],
   "engines": {
     "node": ">=20"
@@ -21,7 +24,7 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
-    "typecheck": "tsc --build && tsc -p tsconfig.tests.json",
+    "typecheck": "tsc --build && tsc -p tsconfig.tests.json && tsc -p oss/free-exercise-db-graph --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -30,14 +33,20 @@
     "relay": "tsc --build && node apps/relay/dist/main.js",
     "fake-sensor": "tsc --build && node tools/fake-sensor/dist/cli.js",
     "audit:copy": "bash scripts/audit-copy.sh",
-    "verify": "npm run typecheck && npm run tv:typecheck && npm run phone:typecheck && npm run lint && npm test && npm run tv:test && npm run phone:test && npm run audit:copy",
+    "verify": "npm run typecheck && npm run tv:typecheck && npm run phone:typecheck && npm run lint && npm test && npm run tv:test && npm run phone:test && npm run coach:test && npm run audit:copy",
     "console-tv": "tsc --build && node tools/console-tv/dist/cli.js",
     "tv:typecheck": "tsc -p apps/tv --noEmit",
     "tv:test": "npm --prefix apps/tv test",
     "tv:build": "tsc --build && npm --prefix apps/tv run build:release",
     "phone:typecheck": "tsc --build && npm --prefix apps/phone run typecheck",
     "phone:ios": "tsc --build && npm --prefix apps/phone run ios:device",
-    "phone:test": "npm --prefix apps/phone test"
+    "phone:test": "npm --prefix apps/phone test",
+    "tune": "tsc --build && node tools/tune/dist/cli.js",
+    "relay:record": "tsc --build && node apps/relay/dist/main.js --record",
+    "contract": "tsc --build && node tools/contract/dist/cli.js",
+    "coach:test": "cd services/coach && uv run --group dev pytest -q",
+    "coach:dev": "cd services/coach && uv run python main.py",
+    "oss:build": "npm --workspace free-exercise-db-graph run build"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

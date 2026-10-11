@@ -82,3 +82,14 @@ export function adaptsInLabel(secondsUntil: number | null): string | null {
   if (secondsUntil < 60) return 'ADAPTS IN <1 MIN';
   return `ADAPTS IN ~${Math.round(secondsUntil / 60)} MIN`;
 }
+
+
+const LEARNED_EPSILON = 0.01;
+
+/** Shown before a session once corrections have moved the model; null while it is still on its first guess. */
+export function learnedLine(personalBias: number): string | null {
+  if (Math.abs(personalBias - 1) < LEARNED_EPSILON) return null;
+  return personalBias < 1
+    ? 'Tuned from your last session: starts lighter, adapts sooner'
+    : 'Tuned from your last session: starts a little stronger';
+}

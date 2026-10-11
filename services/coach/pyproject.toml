@@ -1,0 +1,32 @@
+[project]
+name = "adapt-coach"
+version = "0.1.0"
+description = "ADAPT's coach: a Strands agent on Bedrock AgentCore that sequences pre-filtered movements and writes the post-session line."
+requires-python = ">=3.11"
+license = "Apache-2.0"
+dependencies = [
+  "anthropic[bedrock]>=1.11.0",
+  "bedrock-agentcore>=1.24,<2",
+  "jsonschema>=4.23,<5",
+  "pydantic>=2.8,<3",
+  "strands-agents>=1.57,<2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+]
+deploy = [
+  "bedrock-agentcore-starter-toolkit>=0.3.13",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["coach"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

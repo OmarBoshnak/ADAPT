@@ -37,7 +37,8 @@
     "preset": "jest-expo",
     "moduleNameMapper": {
       "^~/(.*)$": "<rootDir>/src/$1",
-      "^@adapt/core$": "<rootDir>/../../packages/core/dist/index.js"
+      "^@adapt/core$": "<rootDir>/../../packages/core/dist/index.js",
+      "^@adapt/data/session-graph.json$": "<rootDir>/../../packages/data/generated/session-graph.json"
     }
   }
 }

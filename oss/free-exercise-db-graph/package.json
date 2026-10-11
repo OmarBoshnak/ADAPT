@@ -1,0 +1,41 @@
+{
+  "name": "free-exercise-db-graph",
+  "version": "0.1.0",
+  "description": "Turns Free Exercise DB into an adaptation graph: intensity scores, mechanical tags, and for each exercise an easier version and a substitute.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "bin": {
+    "free-exercise-db-graph": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "free-exercise-db",
+    "exercise",
+    "fitness",
+    "workout",
+    "graph",
+    "progression",
+    "regression"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

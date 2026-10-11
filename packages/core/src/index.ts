@@ -16,3 +16,6 @@ export * from './relay-client.js';
 export * from './live.js';
 export * from './sensor-session.js';
 export * from './vocabulary.js';
+export * from './trace.js';
+export * from './coach.js';
+export * from './copy-rules.js';

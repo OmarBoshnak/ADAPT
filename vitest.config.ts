@@ -7,11 +7,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@adapt/core': src('./packages/core/src/index.ts'),
+      '@adapt/data/fixtures': src('./packages/data/src/fixtures.ts'),
       '@adapt/data': src('./packages/data/src/index.ts'),
     },
   },
   test: {
-    include: ['packages/**/*.test.ts', 'apps/relay/**/*.test.ts', 'tools/**/*.test.ts'],
+    include: ['packages/**/*.test.ts', 'apps/relay/**/*.test.ts', 'tools/**/*.test.ts', 'oss/**/test/*.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],

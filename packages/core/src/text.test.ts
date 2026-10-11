@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { adaptationReason, adaptsInLabel, learningCopy, numberToWords } from './text.js';
+import { adaptationReason, adaptsInLabel, learnedLine, learningCopy, numberToWords } from './text.js';
 import type { LearningOutcome } from './types.js';
 
 describe('numberToWords', () => {
@@ -88,5 +88,14 @@ describe('adaptsInLabel', () => {
     expect(adaptsInLabel(130)).toBe('ADAPTS IN ~2 MIN');
     expect(adaptsInLabel(45)).toBe('ADAPTS IN <1 MIN');
     expect(adaptsInLabel(null)).toBeNull();
+  });
+});
+
+describe('learnedLine', () => {
+  it('stays quiet until a correction has moved the model', () => {
+    expect(learnedLine(1)).toBeNull();
+    expect(learnedLine(1.004)).toBeNull();
+    expect(learnedLine(0.88)).toBe('Tuned from your last session: starts lighter, adapts sooner');
+    expect(learnedLine(1.05)).toBe('Tuned from your last session: starts a little stronger');
   });
 });

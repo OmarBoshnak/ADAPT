@@ -1,0 +1,15 @@
+{
+  "name": "@adapt/contract",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Writes the coach contract as JSON Schema from the zod schemas in @adapt/core, for the Python service.",
+  "type": "module",
+  "bin": { "adapt-contract": "./dist/cli.js" },
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "dependencies": {
+    "@adapt/core": "*",
+    "zod": "^4.6.5"
+  }
+}

@@ -28,6 +28,28 @@ So there are two distinct moments, and both are visible on screen:
 
 ---
 
+## How it fits together
+
+```mermaid
+flowchart LR
+  phone["iPhone on the floor<br/>accelerometer · gyroscope · on-device voice"]
+  relay["Relay on your network<br/>Fastify + WebSocket"]
+  tv["Fire TV · Vega OS<br/>session, strain model, every screen"]
+  coach["Coach on Bedrock AgentCore<br/>Strands agent · Claude"]
+
+  phone -- "scored frames twice a second, 'easier'" --> relay
+  relay -- "current movement, adaptations" --> phone
+  relay <--> tv
+  tv -- "eligible movements only" --> relay
+  relay -- "InvokeAgentRuntime" --> coach
+```
+
+The TV owns the session. The engine in `packages/core` runs there, so a Fire TV and its remote alone are a complete
+product. The phone adds automatic adaptation by sensing the floor. The coach adds a plan written by Claude and a
+sentence after the session. Remove either and the workout carries on.
+
+---
+
 ## Project status
 
 | Phase | Scope | State |
@@ -37,10 +59,10 @@ So there are two distinct moments, and both are visible on screen:
 | 2 | Relay, wire protocol, TV-side session controller | ✅ complete |
 | 3 | Vega TV app — all 13 screens | ✅ complete — runs on the Vega Virtual Device |
 | 4 | Phone companion — floor sensor, voice, floor mode | ✅ complete — runs natively in the iOS Simulator; the sensor needs a real iPhone |
-| 5 | Live integration & tuning | ⬜ next |
-| 6 | AWS coach (Bedrock / AgentCore / Strands) | ⬜ |
-| 7 | The learning loop on screen | ⬜ |
-| 8 | Open source, docs, video, submission | ⬜ |
+| 5 | Live integration & tuning | 🚧 tooling done — waiting on real floor recordings |
+| 6 | AWS coach (Bedrock / AgentCore / Strands) | ✅ built and tested — deploy needs AWS credentials |
+| 7 | The learning loop on screen | ✅ complete |
+| 8 | Open source, docs, video, submission | 🚧 code and docs done — publishing and filming remain |
 
 ---
 
@@ -110,12 +132,29 @@ reduced confidence; a plank registers nothing at all, and ADAPT never pretends o
 run on the strain prediction alone. Thick carpet damps everything; the estimator notices and lowers
 its own confidence. Film on a hard floor.
 
-**The signal estimators are tuned on synthetic traces.** Phase 5 records real traces from a real
-floor and re-tunes against them.
+**The signal estimators are tuned on synthetic traces** until real floor recordings land in
+`packages/data/fixtures/`. From then on `npm run tune` holds them to real data.
 
 **The demo uses a fixed seed** (`5`), chosen because its plan puts Jumping Jacks where the model
 first reaches its threshold. The seed picks *which* generated plan is filmed; every adaptation in it
 is still computed live.
+
+---
+
+## The coach, and the line the model does not cross
+
+The coach is a Strands agent on Amazon Bedrock AgentCore, calling Claude on Bedrock. It does two small jobs: it
+orders the movements for a session, and after someone corrects the model it writes the one sentence on the
+"What changed" card.
+
+It never sees the person. The TV applies the profile's exclusions on the device and sends only the movements that
+remain, plus a load budget. Age, height, weight, injuries and conditions never leave the TV. The model can only
+*choose and order* from that list. Its answer is checked by the agent's own `validate_plan` tool, again by the
+service, and a third time on the TV, where the real strain model must agree the plan reaches its threshold in the
+right part of the session. Generated sentences must pass the same copy rules as every string in the app.
+
+Anything that fails a check, or takes longer than four seconds, is replaced by the local generator and the built-in
+sentence, so nothing on screen depends on the cloud. Details: [services/coach](services/coach/README.md).
 
 ---
 
@@ -128,8 +167,10 @@ apps/tv           Vega OS (React Native for Vega) — the Fire TV app. The produ
 apps/tv-fireos    react-native-tvos / Fire OS. Kept as a working fallback, not maintained.
 apps/phone        Expo SDK 56 (iOS) — the floor sensor, the microphone, and a big Easier button.
 apps/relay        Fastify + ws — pairing and message bus.
-services/coach    Python — Strands agent on Bedrock AgentCore.
-tools/            Graph builder, headless session simulator, fake sensor.
+services/coach    Python: Strands agent on Bedrock AgentCore, calling Claude on Bedrock.
+tools/            Graph builder, simulator, fake sensor, trace tuner, coach contract generator.
+oss/              free-exercise-db-graph, the open-source package extracted from the engine,
+                  and a JSON Schema prepared as a pull request to Free Exercise DB.
 ```
 
 ### Why Vega OS
@@ -231,6 +272,22 @@ What the phone does, and what it deliberately does not:
 
 ---
 
+### The coach
+
+```bash
+npm run coach:dev
+```
+
+```bash
+COACH_URL=http://127.0.0.1:8080 npm run relay
+```
+
+That runs the coach locally against Bedrock, which needs AWS credentials. Deploying it to AgentCore and pointing the
+relay at the runtime is two commands, described in [services/coach](services/coach/README.md). With no coach
+configured, the relay says so and the TV plans locally.
+
+---
+
 ## Networking, and the one thing that will confuse you
 
 The relay runs on your development machine. The TV and the phone reach it at **different
@@ -272,6 +329,15 @@ learning from a spoken "easier" are the real behaviour, printed instead of drawn
 press `e` to say "easier", `s` for "swap this", `p` to pause, `r` to resume, and `d` to drop off the
 network for eight seconds. Both take `--speed 6` to run a 12-minute session in two.
 
+### Real floor traces
+
+The estimators were tuned on synthetic vibration; real recordings replace it. `npm run relay:record` lets the
+phone's **Record floor traces** screen save labelled takes (steady, fading, pick-up) to
+`packages/data/fixtures/`. `npm run tune` scores each one with the real estimators and checks it against what that
+take should produce, and every recorded trace becomes a regression test. `fake-sensor --replay` plays them back
+into a live session, so a demo take can be repeated exactly. The recording checklist is in
+[TRACE-SESSION.md](docs/TRACE-SESSION.md).
+
 ---
 
 ## Design constraints worth knowing before you read the code
@@ -300,7 +366,10 @@ any red in the palette.
 npm run verify
 ```
 
-Runs typecheck, lint, unit tests and the copy audit.
+Runs typecheck, lint, every test suite and the copy audit: the engine, relay and tools (Vitest), the TV app (Jest
+on the Vega preset), the phone app (Jest on jest-expo), the coach (pytest), and the open-source package. Contract
+tests fail if the TypeScript and Python sides of the coach drift apart, and every recorded floor trace becomes a
+regression test.
 
 ---
 

@@ -269,6 +269,103 @@ visual checks possible, and every developer recording a submission video needs i
 
 ---
 
+## FL-010 — The AgentCore starter toolkit announces it is unsupported, after you have built on it
+
+- **Date:** 2026-10-05
+- **Platform/tool:** Amazon Bedrock AgentCore — `bedrock-agentcore-starter-toolkit` 0.3.13 vs `@aws/agentcore` CLI 0.31
+- **Severity:** minor
+
+**Task attempted.** Deploy a Python Strands agent to AgentCore Runtime.
+
+**Steps taken.** Followed the widely linked starter-toolkit flow (`pip install bedrock-agentcore-starter-toolkit`,
+`agentcore configure`, `agentcore launch`). Running `agentcore configure --help` printed: "The Starter Toolkit CLI is no
+longer supported. Please use the AgentCore CLI (@aws/agentcore)". Moved to the npm CLI: `agentcore create --no-agent`,
+then `agentcore add agent --type byo --code-location . --entrypoint main.py`.
+
+**Expected.** One documented path, or the deprecation surfaced at install time.
+
+**Actual.** Two CLIs with the same binary name (`agentcore`), different project models (YAML vs `agentcore.json` +
+CDK), and the deprecation only visible in help output. `agentcore create` also runs `git init`, which is a surprise
+inside an existing monorepo.
+
+**Workaround.** Created the project in a scratch directory and moved only `agentcore/` into the service. The BYO path
+itself worked well: `agentcore package` produced a correct 30 MB CodeZip with no AWS credentials needed.
+
+**Suggestion.** Deprecate the PyPI package with a warning on install, and let `agentcore create` skip `git init` when
+run inside a repository.
+
+---
+
+## FL-011 — The AgentCore Runtime role cannot call Claude through Bedrock's Messages-API endpoint
+
+- **Date:** 2026-10-05
+- **Platform/tool:** `@aws/agentcore-cdk` runtime construct; Amazon Bedrock (bedrock-mantle)
+- **Severity:** major (found before deploy, by reading the construct)
+
+**Task attempted.** Call Claude from the agent with the Anthropic SDK's Bedrock client (`AnthropicBedrockMantle`),
+which Anthropic recommends for new code and which is how current Claude models are addressed on Bedrock
+(`anthropic.claude-opus-5-5`).
+
+**Steps taken.** Read the generated execution role in `AgentCoreRuntime.js`. It grants `bedrock:InvokeModel`,
+`InvokeModelWithResponseStream` and `CountTokens` on foundation models and inference profiles, but not
+`bedrock-mantle:CreateInference`. The harness role in the same package does grant it, but only for its own
+Responses/ChatCompletions modes.
+
+**Expected.** A runtime that is created with "model access" can reach the model through either Bedrock endpoint.
+
+**Actual.** It would have failed at the first model call after a successful deploy.
+
+**Workaround.** Added the statement to the project's `cdk-stack.ts` for every runtime role.
+
+**Suggestion.** Include `bedrock-mantle:CreateInference` in the runtime role by default, or add a `modelAccess` option
+to `agentcore.json`.
+
+---
+
+## FL-012 — Strands structured output forces a tool choice that current Claude models reject
+
+- **Date:** 2026-10-05
+- **Platform/tool:** Strands Agents 1.57 — `AnthropicModel`; Claude Opus 5.5
+- **Severity:** major
+
+**Task attempted.** Get a Pydantic-typed answer from a Strands agent (`structured_output_model=PlanReply`) running on
+Claude Opus 5.5.
+
+**Steps taken.** Read `AnthropicModel._format_tool_choice`: Strands sends `tool_choice: {"type": "any"}` or
+`{"type": "tool"}` when it needs the structured-output tool called. Claude Opus 5.5, Sonnet 5.5 and Fable 5.1 return
+400 for forced tool choice. Separately, `AnthropicModel` always builds a first-party `AsyncAnthropic` client, so there is
+no supported way to point it at Bedrock.
+
+**Expected.** A provider option for forced-choice support, and a way to pass a client.
+
+**Actual.** Both had to be worked around in a 15-line subclass: replace `self.client` with
+`AsyncAnthropicBedrockMantle`, and map forced choices to `auto` (the system prompt already asks for the tool).
+
+**Suggestion.** Accept a `client=` argument on `AnthropicModel`, and fall back to `auto` plus an instruction when the
+model rejects forced tool use.
+
+---
+
+## FL-013 — Expo SDK 57 requires Xcode 27, and the failure surfaces as Swift errors in a nested build
+
+- **Date:** 2026-09-29
+- **Platform/tool:** Expo SDK 57 (`expo-modules-jsi` 57.1), Xcode 26.3 on an Intel Mac
+- **Severity:** blocker (resolved by downgrading)
+
+**Task attempted.** Build the phone companion for the iOS Simulator.
+
+**Actual.** `Build ExpoModulesJSI xcframework` failed: first on `SWIFT_RETURNS_RETAINED` on constructors, then on
+Swift 6 region-isolation errors, then on syntax only Swift 6.3 accepts. The changelog shows these were Xcode 27 fixes.
+Nothing in `expo doctor` or the SDK release notes said Xcode 27 was required, and this Mac cannot run it.
+
+**Workaround.** Stayed on Expo SDK 56, which builds cleanly on Xcode 26.3. React Native 0.86's prebuilt core tarball
+also failed checksum twice when fetched over a flaky connection; pre-fetching with `curl -C - --retry` into
+`~/Library/Caches/ReactNative` fixed it.
+
+**Suggestion.** State the minimum Xcode per SDK in `expo doctor`, and retry downloads before verifying checksums.
+
+---
+
 <!--
 Template for new entries:
 

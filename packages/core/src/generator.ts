@@ -67,13 +67,20 @@ export interface GenerateInput {
   seed: number;
 }
 
-interface Draft {
-  ids: string[];
-  crossingSec: number | null;
+export interface PlanShape {
+  /** Eligible movements, gentlest first. */
+  candidates: Exercise[];
+  count: number;
+  restSec: number;
+  totalSec: number;
+  /** The threshold the plan is sized against, with the plan's share of the learned bias. */
+  T: number;
+  ceiling: number;
+  durationFor: (ex: Exercise) => number;
 }
 
-export function generatePlan(input: GenerateInput): SessionPlan {
-  const { graph, profile, durationMin, energy, seed } = input;
+export function planShape(input: GenerateInput): PlanShape {
+  const { graph, profile, durationMin, energy } = input;
   const constraints = constraintsFor(profile);
 
   let candidates = selectableIds(graph)
@@ -89,29 +96,76 @@ export function generatePlan(input: GenerateInput): SessionPlan {
   }
   candidates.sort((a, b) => a.intensity - b.intensity || a.id.localeCompare(b.id));
 
-  const n = exerciseCount(durationMin);
+  const count = exerciseCount(durationMin);
   const restSec = REST_SEC[energy];
   const totalSec = durationMin * 60;
-  const workSec = Math.max(20, Math.floor((totalSec - (n - 1) * restSec) / n));
+  const workSec = Math.max(20, Math.floor((totalSec - (count - 1) * restSec) / count));
   const cap = constraints.highIntensitySegmentCapSec;
-  const durationFor = (ex: Exercise) => (cap !== null && ex.intensity >= HIGH_INTENSITY ? Math.min(workSec, cap) : workSec);
 
-  const T = threshold(profile, energy, PLAN_BIAS_SHARE);
-  const targetCrossing = TARGET_CROSSING_FRACTION * totalSec;
-
-  const draft = (targetIntensity: number): Draft => {
-    const ids = sequence(candidates, n, targetIntensity, seed, ceiling);
-    const blocks: Block[] = [];
-    ids.forEach((id, i) => {
-      const ex = getExercise(graph, id);
-      blocks.push({ kind: 'work', durationSec: durationFor(ex), intensity: ex.intensity });
-      if (i < ids.length - 1) blocks.push({ kind: 'rest', durationSec: restSec, intensity: 0 });
-    });
-    return { ids, crossingSec: project(0, T, blocks, 1, 1, 60).secondsUntilThreshold };
+  return {
+    candidates,
+    count,
+    restSec,
+    totalSec,
+    T: threshold(profile, energy, PLAN_BIAS_SHARE),
+    ceiling: ENERGY_CEILING[energy],
+    durationFor: (ex) => (cap !== null && ex.intensity >= HIGH_INTENSITY ? Math.min(workSec, cap) : workSec),
   };
+}
+
+/** When, at nominal quality, a sequence first reaches the threshold. Null if it never does. */
+export function projectedCrossing(graph: ExerciseGraph, shape: PlanShape, ids: string[]): number | null {
+  const blocks: Block[] = [];
+  ids.forEach((id, i) => {
+    const ex = getExercise(graph, id);
+    blocks.push({ kind: 'work', durationSec: shape.durationFor(ex), intensity: ex.intensity });
+    if (i < ids.length - 1) blocks.push({ kind: 'rest', durationSec: shape.restSec, intensity: 0 });
+  });
+  return project(0, shape.T, blocks, 1, 1, 60).secondsUntilThreshold;
+}
+
+export function assemblePlan(
+  input: GenerateInput,
+  shape: PlanShape,
+  ids: string[],
+  source: { title?: string; generatedLocally: boolean },
+): SessionPlan {
+  const { graph, profile, durationMin, energy, seed } = input;
+  const segments: SessionSegment[] = ids.map((id) => {
+    const ex = getExercise(graph, id);
+    const durationSec = shape.durationFor(ex);
+    return {
+      exerciseId: id,
+      durationSec,
+      targetReps: Math.max(1, Math.round((durationSec * (ex.expectedCadence ?? 30)) / 60)),
+    };
+  });
+
+  return {
+    id: `plan-${seed.toString(36)}-${durationMin}`,
+    title: source.title ?? `${durationMin}-Minute ${TITLE_NOUN[energy]}`,
+    segments,
+    restSec: shape.restSec,
+    getReadySec: GET_READY_SEC,
+    totalDurationSec: segments.reduce((a, s) => a + s.durationSec, 0) + shape.restSec * (segments.length - 1),
+    exclusionLabels: exclusionLabels(profile),
+    generatedLocally: source.generatedLocally,
+    seed,
+  };
+}
+
+export function generatePlan(input: GenerateInput): SessionPlan {
+  const shape = planShape(input);
+  const { candidates, count, ceiling } = shape;
+  const targetCrossing = TARGET_CROSSING_FRACTION * shape.totalSec;
+
+  const draft = (targetIntensity: number) => {
+    const ids = sequence(candidates, count, targetIntensity, input.seed, ceiling);
+    return { ids, crossingSec: projectedCrossing(input.graph, shape, ids) };
+  };
+  type Draft = ReturnType<typeof draft>;
 
   // Drafts are discrete, so keep the closest seen rather than the last.
-  const ceiling = ENERGY_CEILING[energy];
   const lo0 = candidates[0]?.intensity ?? 0;
   const hi0 = Math.max(lo0, Math.min(candidates[candidates.length - 1]?.intensity ?? 10, ceiling));
   let lo = lo0;
@@ -127,27 +181,7 @@ export function generatePlan(input: GenerateInput): SessionPlan {
     else hi = mid;
   }
 
-  const segments: SessionSegment[] = best.ids.map((id) => {
-    const ex = getExercise(graph, id);
-    const durationSec = durationFor(ex);
-    return {
-      exerciseId: id,
-      durationSec,
-      targetReps: Math.max(1, Math.round((durationSec * (ex.expectedCadence ?? 30)) / 60)),
-    };
-  });
-
-  return {
-    id: `plan-${seed.toString(36)}-${durationMin}`,
-    title: `${durationMin}-Minute ${TITLE_NOUN[energy]}`,
-    segments,
-    restSec,
-    getReadySec: GET_READY_SEC,
-    totalDurationSec: segments.reduce((a, s) => a + s.durationSec, 0) + restSec * (segments.length - 1),
-    exclusionLabels: exclusionLabels(profile),
-    generatedLocally: true,
-    seed,
-  };
+  return assemblePlan(input, shape, best.ids, { generatedLocally: true });
 }
 
 function sequence(candidates: Exercise[], n: number, target: number, seed: number, ceiling: number): string[] {

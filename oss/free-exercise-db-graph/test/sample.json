@@ -1,0 +1,328 @@
+[
+ {
+  "name": "Bodyweight Squat",
+  "force": "push",
+  "level": "beginner",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "quadriceps"
+  ],
+  "secondaryMuscles": [
+   "glutes",
+   "hamstrings"
+  ],
+  "instructions": [
+   "Stand with your feet shoulder width apart. You can place your hands behind your head. This will be your starting position.",
+   "Begin the movement by flexing your knees and hips, sitting back with your hips.",
+   "Continue down to full depth if you are able,and quickly reverse the motion until you return to the starting position. As you squat, keep your head and chest up and push your knees out."
+  ],
+  "category": "strength",
+  "id": "Bodyweight_Squat",
+  "images": []
+ },
+ {
+  "name": "Clock Push-Up",
+  "force": "push",
+  "level": "intermediate",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "chest"
+  ],
+  "secondaryMuscles": [
+   "shoulders",
+   "triceps"
+  ],
+  "instructions": [
+   "Move into a prone position on the floor, supporting your weight on your hands and toes.",
+   "Your arms should be fully extended with the hands around shoulder width. Keep your body straight throughout the movement. This will be your starting position.",
+   "Descend by flexing at the elbow, lowering your chest toward the ground.",
+   "At the bottom, reverse the motion by pushing yourself up through elbow extension as quickly as possible until you are air borne. Aim to \"jump\" 12-18 inches to one side.",
+   "As you accelerate up, move your outside foot away from your direction of travel. Leaving the ground, shift your body about 30 degrees for the next repetition.",
+   "Return to the starting position and repeat the exercise, working all the way around until you are back where you started."
+  ],
+  "category": "strength",
+  "id": "Clock_Push-Up",
+  "images": []
+ },
+ {
+  "name": "Freehand Jump Squat",
+  "force": "push",
+  "level": "intermediate",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "quadriceps"
+  ],
+  "secondaryMuscles": [
+   "calves",
+   "glutes",
+   "hamstrings"
+  ],
+  "instructions": [
+   "Cross your arms over your chest.",
+   "With your head up and your back straight, position your feet at shoulder width.",
+   "Keeping your back straight and chest up, squat down as you inhale until your upper thighs are parallel, or lower, to the floor.",
+   "Now pressing mainly with the ball of your feet, jump straight up in the air as high as possible, using the thighs like springs. Exhale during this portion of the movement.",
+   "When you touch the floor again, immediately squat down and jump again.",
+   "Repeat for the recommended amount of repetitions."
+  ],
+  "category": "strength",
+  "id": "Freehand_Jump_Squat",
+  "images": []
+ },
+ {
+  "name": "Handstand Push-Ups",
+  "force": "push",
+  "level": "expert",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "shoulders"
+  ],
+  "secondaryMuscles": [
+   "triceps"
+  ],
+  "instructions": [
+   "With your back to the wall bend at the waist and place both hands on the floor at shoulder width.",
+   "Kick yourself up against the wall with your arms straight. Your body should be upside down with the arms and legs fully extended. Keep your whole body as straight as possible. Tip: If doing this for the first time, have a spotter help you. Also, make sure that you keep facing the wall with your head, rather than looking down.",
+   "Slowly lower yourself to the ground as you inhale until your head almost touches the floor. Tip: It is of utmost importance that you come down slow in order to avoid head injury.",
+   "Push yourself back up slowly as you exhale until your elbows are nearly locked.",
+   "Repeat for the recommended amount of repetitions."
+  ],
+  "category": "strength",
+  "id": "Handstand_Push-Ups",
+  "images": []
+ },
+ {
+  "name": "Incline Push-Up",
+  "force": "push",
+  "level": "beginner",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "chest"
+  ],
+  "secondaryMuscles": [
+   "shoulders",
+   "triceps"
+  ],
+  "instructions": [
+   "Stand facing bench or sturdy elevated platform. Place hands on edge of bench or platform, slightly wider than shoulder width.",
+   "Position forefoot back from bench or platform with arms and body straight. Arms should be perpendicular to body. Keeping body straight, lower chest to edge of box or platform by bending arms.",
+   "Push body up until arms are extended. Repeat."
+  ],
+  "category": "strength",
+  "id": "Incline_Push-Up",
+  "images": []
+ },
+ {
+  "name": "Incline Push-Up Medium",
+  "force": "push",
+  "level": "beginner",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "chest"
+  ],
+  "secondaryMuscles": [
+   "abdominals",
+   "shoulders",
+   "triceps"
+  ],
+  "instructions": [
+   "Stand facing a Smith machine bar or sturdy elevated platform at an appropriate height.",
+   "Place your hands on the bar, with your hands about shoulder width apart.",
+   "Position your feet back from the bar with arms and body straight. This will be your starting position.",
+   "Keeping your body straight, lower your chest to the bar by bending the arms.",
+   "Return to the starting position by extending the elbows, pressing yourself back up."
+  ],
+  "category": "strength",
+  "id": "Incline_Push-Up_Medium",
+  "images": []
+ },
+ {
+  "name": "Mountain Climbers",
+  "force": "pull",
+  "level": "beginner",
+  "mechanic": "compound",
+  "equipment": null,
+  "primaryMuscles": [
+   "quadriceps"
+  ],
+  "secondaryMuscles": [
+   "chest",
+   "hamstrings",
+   "shoulders"
+  ],
+  "instructions": [
+   "Begin in a pushup position, with your weight supported by your hands and toes. Flexing the knee and hip, bring one leg until the knee is approximately under the hip. This will be your starting position.",
+   "Explosively reverse the positions of your legs, extending the bent leg until the leg is straight and supported by the toe, and bringing the other foot up with the hip and knee flexed. Repeat in an alternating fashion for 20-30 seconds."
+  ],
+  "category": "plyometrics",
+  "id": "Mountain_Climbers",
+  "images": []
+ },
+ {
+  "name": "Plank",
+  "force": "static",
+  "level": "beginner",
+  "mechanic": "isolation",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "abdominals"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+   "Get into a prone position on the floor, supporting your weight on your toes and your forearms. Your arms are bent and directly below the shoulder.",
+   "Keep your body straight at all times, and hold this position as long as possible. To increase difficulty, an arm or leg can be raised."
+  ],
+  "category": "strength",
+  "id": "Plank",
+  "images": []
+ },
+ {
+  "name": "Plyo Push-up",
+  "force": "push",
+  "level": "beginner",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "chest"
+  ],
+  "secondaryMuscles": [
+   "shoulders",
+   "triceps"
+  ],
+  "instructions": [
+   "Move into a prone position on the floor, supporting your weight on your hands and toes.",
+   "Your arms should be fully extended with the hands around shoulder width. Keep your body straight throughout the movement. This will be your starting position.",
+   "Descend by flexing at the elbow, lowering your chest towards the ground.",
+   "At the bottom, reverse the motion by pushing yourself up through elbow extension as quickly as possible. Attempt to push your upper body up until your hands leave the ground.",
+   "Return to the starting position and repeat the exercise.",
+   "For added difficulty, add claps into the movement while you are air borne."
+  ],
+  "category": "plyometrics",
+  "id": "Plyo_Push-up",
+  "images": []
+ },
+ {
+  "name": "Push-Up Wide",
+  "force": null,
+  "level": "beginner",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "chest"
+  ],
+  "secondaryMuscles": [
+   "abdominals",
+   "shoulders",
+   "triceps"
+  ],
+  "instructions": [
+   "With your hands wide apart, support your body on your toes and hands in a plank position. Your elbows should be extended and your body straight. Do not allow your hips to sag. This will be your starting position.",
+   "To begin, allow the elbows to flex, lowering your chest to the floor as you inhale.",
+   "Using your pectoral muscles, press your upper body back up to the starting position by extending the elbows. Exhale as you perform this step.",
+   "After pausing at the contracted position, repeat the movement for the prescribed amount of repetitions."
+  ],
+  "category": "strength",
+  "id": "Push-Up_Wide",
+  "images": []
+ },
+ {
+  "name": "Push-Ups With Feet Elevated",
+  "force": "push",
+  "level": "beginner",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "chest"
+  ],
+  "secondaryMuscles": [
+   "shoulders",
+   "triceps"
+  ],
+  "instructions": [
+   "Lie on the floor face down and place your hands about 36 inches apart from each other holding your torso up at arms length.",
+   "Place your toes on top of a flat bench. This will allow your body to be elevated. Note: The higher the elevation of the flat bench, the higher the resistance of the exercise is.",
+   "Lower yourself until your chest almost touches the floor as you inhale.",
+   "Using your pectoral muscles, press your upper body back up to the starting position and squeeze your chest. Breathe out as you perform this step.",
+   "After a second pause at the contracted position, repeat the movement for the prescribed amount of repetitions."
+  ],
+  "category": "strength",
+  "id": "Push-Ups_With_Feet_Elevated",
+  "images": []
+ },
+ {
+  "name": "Pushups",
+  "force": "push",
+  "level": "beginner",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "chest"
+  ],
+  "secondaryMuscles": [
+   "shoulders",
+   "triceps"
+  ],
+  "instructions": [
+   "Lie on the floor face down and place your hands about 36 inches apart while holding your torso up at arms length.",
+   "Next, lower yourself downward until your chest almost touches the floor as you inhale.",
+   "Now breathe out and press your upper body back up to the starting position while squeezing your chest.",
+   "After a brief pause at the top contracted position, you can begin to lower yourself downward again for as many repetitions as needed."
+  ],
+  "category": "strength",
+  "id": "Pushups",
+  "images": []
+ },
+ {
+  "name": "Single-Arm Push-Up",
+  "force": "push",
+  "level": "intermediate",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "chest"
+  ],
+  "secondaryMuscles": [
+   "shoulders",
+   "triceps"
+  ],
+  "instructions": [
+   "Begin laying prone on the ground. Move yourself into a position supporting your weight on your toes and one arm. Your working arm should be placed directly under the shoulder, fully extended. Your legs should be extended, and for this movement you may need a wider base, placing your feet further apart than in a normal push-up.",
+   "Maintain good posture, and place your free hand behind your back. This will be your starting position.",
+   "Lower yourself by allowing the elbow to flex until you touch the ground.",
+   "Descend slowly, and reverse direction be extending the arm to return to the starting position."
+  ],
+  "category": "strength",
+  "id": "Single-Arm_Push-Up",
+  "images": []
+ },
+ {
+  "name": "Star Jump",
+  "force": "push",
+  "level": "beginner",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+   "quadriceps"
+  ],
+  "secondaryMuscles": [
+   "calves",
+   "glutes",
+   "hamstrings",
+   "shoulders"
+  ],
+  "instructions": [
+   "Begin in a relaxed stance with your feet shoulder width apart and hold your arms close to the body.",
+   "To initiate the move, squat down halfway and explode back up as high as possible. Fully extend your entire body, spreading your legs and arms away from the body.",
+   "As you land, bring your limbs back in and absorb your impact through the legs."
+  ],
+  "category": "plyometrics",
+  "id": "Star_Jump",
+  "images": []
+ }
+]

@@ -1,3 +1,7 @@
+import { mkdtempSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { RelayClient, type RelayStatus, type protocol } from '@adapt/core';
@@ -115,5 +119,39 @@ describe('relay server', () => {
     const ws = new WebSocket(url);
     const code = await new Promise<number>((resolve) => ws.addEventListener('close', (e) => resolve(e.code)));
     expect(code).toBe(4003);
+  });
+});
+
+describe('relay trace recording', () => {
+  const trace = (exerciseId = 'adapt_jumping_jacks') => ({
+    v: 1,
+    exerciseId,
+    name: 'Jumping Jacks',
+    profile: 'impact',
+    expectedCadence: 70,
+    take: 'steady',
+    floor: 'hard',
+    device: 'test',
+    recordedAt: '2026-09-29T12:00:00.000Z',
+    samples: [[0, 0, 0, 1, 0, 0, 0]],
+  });
+
+  it('is off unless asked for', async () => {
+    await boot();
+    expect((await relay!.app.inject({ method: 'GET', url: '/traces' })).statusCode).toBe(404);
+  });
+
+  it('saves a valid trace and refuses anything that could escape the fixtures folder', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'adapt-traces-'));
+    await boot({ traces: { dir } });
+    expect((await relay!.app.inject({ method: 'GET', url: '/traces' })).json()).toEqual({ recording: true });
+
+    const saved = await relay!.app.inject({ method: 'POST', url: '/traces', payload: trace() });
+    expect(saved.json().saved).toBe('adapt_jumping_jacks.steady.2026-09-29T12-00-00-000Z.json');
+    expect(readdirSync(dir)).toEqual([saved.json().saved]);
+
+    const escape = await relay!.app.inject({ method: 'POST', url: '/traces', payload: trace('../../etc') });
+    expect(escape.statusCode).toBe(400);
+    expect(readdirSync(dir)).toHaveLength(1);
   });
 });

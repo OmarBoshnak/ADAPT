@@ -12,12 +12,16 @@ Status key: ✅ shipped with it · 🚧 in progress · ⬜ not started yet
 
 ## Amazon
 
-### Fire TV / Fire OS — 🚧
+### Fire TV / Fire OS — ✅ as the platform, with Vega as the OS we shipped on
 
 **What we used it for.** Primary track. The TV app is the product: profile capture, workout
-generation, the live session, and the adaptation moment all run here.
+generation, the live session, and the adaptation moment all run here. We started on Fire OS and moved
+to Vega OS for the reasons below. A working Fire OS build stays in `apps/tv-fireos` as a fallback.
 
-**What worked well.** *(fill in during Phase 3)*
+**What worked well.** The 10-foot design guidance is clear and opinionated in a useful way. Designing
+for a remote with a D-pad forced every screen to have one obvious next action, which is the right
+constraint for something you use mid-workout and out of breath. "Down for easier" turned out to be as
+natural a correction as saying it.
 
 **What needs work.** The voice story is the weak point. Three documented voice paths exist and none
 of them lets a foreground app hear a custom word, because the devices have no app-accessible
@@ -28,17 +32,23 @@ The absence of a Fire OS emulator (FL-002) is the other friction point: the firs
 developer wants is to run something without buying hardware, and the answer is an Android TV AVD
 that may or may not satisfy a reviewer.
 
-**Onboarding.** *(fill in)*
+**Onboarding.** Fast to a running app on hardware, slow without hardware. The documentation assumes
+a device on the desk.
 
-**Would we build with it again?** *(fill in)*
+**Would we build with it again?** Yes. The living room is the right place for this product, and the
+remote's constraints made the interface better.
 
-### react-native-tvos — 🚧
+### react-native-tvos — ✅ fallback only
 
 **What we used it for.** The Fire OS fallback app, pinned at `0.83.0-0` — the newest release with a
 matching project template (FL-006).
 
-*(fill in during Phase 3: focus engine, `TVFocusGuideView`, `useTVEventHandler`, how well the
-10-foot focus model held up.)*
+**What worked well.** The focus API transferred to Vega unchanged: `TVFocusGuideView`,
+`hasTVPreferredFocus` and `useTVEventHandler` behave the same on both, so the fallback costs nothing
+to keep.
+
+**What needs work.** The template lagging the runtime by four minor versions (FL-006) is the one thing
+that makes starting a new project harder than it should be.
 
 ### Vega OS / Vega Developer Tools — 🚧 adopted as the primary TV target
 
@@ -76,21 +86,48 @@ documentation, and each has a small, specific fix.
 
 ## AWS
 
-### Amazon Bedrock — ⬜
+### Amazon Bedrock — 🚧 built, deploy pending
 
-**Planned use.** Claude generates the session plan by selecting and sequencing from a
-pre-filtered candidate set, and writes the post-session narrative from the real strain trace.
+**What we used it for.** Claude Opus 5.5 (`anthropic.claude-opus-5-5`) does two short jobs: ordering a session's
+movements from a pre-filtered list, and writing the one sentence on the post-session "What changed" card. Called
+through the Anthropic SDK's Bedrock client, at low effort, under a four-second deadline.
 
-### Bedrock AgentCore — ⬜
+**What worked well.** The model is used for what it is good at, choosing well among valid options and writing
+plainly, and nothing it says can reach the screen unchecked. Keeping it out of the safety path was easy because the
+contract is small: candidates in, an ordered list of ids out.
 
-**Planned use.** Hosting the coach agent.
+**What needs work.** There are two ways to call Claude on Bedrock, Converse with versioned ARNs and the
+Messages-API endpoint (bedrock-mantle), and the IAM actions differ. Tooling built for one doesn't grant the other
+(FL-011).
 
-### Strands Agents SDK — ⬜
+### Bedrock AgentCore — 🚧 built and packaged, deploy pending
 
-**Planned use.** Agent definition and tool wiring (`get_eligible_exercises`,
-`get_strain_budget`, `validate_plan`), pinned at `1.56.0` (Python).
+**What we used it for.** Hosting the coach agent as an HTTP runtime. The relay invokes it with
+`InvokeAgentRuntime`, keeps one session warm with a ping every ten minutes, and the TV falls back to its local
+generator after four seconds.
 
----
+**What worked well.** The runtime protocol is simple: `POST /invocations` and `GET /ping`. The same entrypoint runs
+locally with `uv run python main.py`, so the whole relay → coach path was tested before any deploy. The AgentCore CLI's
+bring-your-own-code path wrapped an existing agent without restructuring it, and `agentcore package` builds the
+CodeZip offline.
+
+**What needs work.** The starter toolkit and the AgentCore CLI share a binary name and differ in project model, and the
+toolkit's deprecation only shows in help output (FL-010). The default runtime role lacks the permission the
+recommended Claude client needs (FL-011).
+
+### Strands Agents SDK — ✅
+
+**What we used it for.** The coach agent: a system prompt, one tool (`validate_plan`, so the agent checks its own
+answer), and a Pydantic structured-output model. Python, `strands-agents` 1.57.
+
+**What worked well.** Tools are plain decorated functions, and closures give each request its own context with no
+global state. Structured output returns a typed Pydantic object, which made the server-side re-check a few lines.
+
+**What needs work.** `AnthropicModel` can't take a client (so no Bedrock), and its structured output forces tool
+choice, which current Claude models reject (FL-012). Both fixed in a 15-line subclass.
+
+**Would we build with it again?** Yes. The agent definition is short enough to read in one screen, which matters when
+the model sits near a health-adjacent product.
 
 ## Open data
 

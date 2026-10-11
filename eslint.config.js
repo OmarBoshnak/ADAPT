@@ -32,6 +32,9 @@ export default tseslint.config(
       'apps/tv-fireos/android/**',
       'apps/tv-fireos/ios/**',
       'apps/phone/.expo/**',
+      'apps/phone/ios/**',
+      'services/coach/agentcore/**',
+      '**/.venv/**',
       // React Native build configs are CommonJS tooling.
       '**/babel.config.js',
       '**/metro.config.js',
@@ -81,6 +84,8 @@ export default tseslint.config(
 
   {
     files: ['apps/**/*.{ts,tsx}', 'packages/**/*.ts'],
+    // Defines the forbidden words for generated text, so it has to spell them out.
+    ignores: ['packages/core/src/copy-rules.ts'],
     rules: {
       'no-restricted-syntax': [
         'error',

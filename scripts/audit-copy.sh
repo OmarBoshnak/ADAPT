@@ -8,7 +8,8 @@ cd "$ROOT"
 
 FAIL=0
 
-SEARCH_PATHS=(apps packages/core/src packages/data/src tools)
+# The relay is a server: nothing it says reaches a screen.
+SEARCH_PATHS=(apps/tv apps/phone packages/core/src packages/data/src tools)
 
 EXCLUDES=(
   --include=*.ts
@@ -45,7 +46,7 @@ report() {
   local label="$1" pattern="$2" explanation="$3"
   local hits
   hits=$(grep -rniE "$pattern" "${SEARCH_PATHS[@]}" "${EXCLUDES[@]}" 2>/dev/null \
-    | grep -viE '(audit-copy|FRICTION-LOG|PRODUCT-FEEDBACK|eslint\.config)' \
+    | grep -viE '(audit-copy|FRICTION-LOG|PRODUCT-FEEDBACK|eslint\.config|copy-rules)' \
     | strip_comments | strip_diagnostics || true)
   if [[ -n "$hits" ]]; then
     echo "✗ $label"

@@ -3,6 +3,7 @@ import {fireEvent, render} from '@testing-library/react-native';
 import {summaryFor} from '@adapt/core';
 
 import {exercise} from '~/exercises/catalog';
+import {ExercisePhoto} from '~/exercises/ExercisePhoto';
 import {HealthStep} from '~/features/onboarding/HealthStep';
 import {SwapScreen} from '~/features/session/SwapScreen';
 import {SetupScreen} from '~/features/setup/SetupScreen';
@@ -17,6 +18,12 @@ describe('SetupScreen', () => {
 
   it('says so when nothing is excluded', () => {
     expect(render(<SetupScreen profile={profile()} onGenerate={jest.fn()} />).getByText('Nothing excluded')).toBeTruthy();
+  });
+
+  it('says when the model has learned from a correction, and only then', () => {
+    expect(render(<SetupScreen profile={profile()} onGenerate={jest.fn()} />).queryByText(/Tuned from/)).toBeNull();
+    const learned = render(<SetupScreen profile={profile({personalBias: 0.88})} onGenerate={jest.fn()} />);
+    expect(learned.getByText('Tuned from your last session: starts lighter, adapts sooner')).toBeTruthy();
   });
 
   it('generates with the chosen time and energy', () => {
@@ -67,15 +74,22 @@ describe('SummaryScreen', () => {
   it('shows the learning card only after a real correction', () => {
     const quiet = session();
     quiet.tickUntil(s => s.phase === 'complete');
-    const without = render(<SummaryScreen title="t" summary={summaryFor(quiet.ctx, quiet.state)} onMore={jest.fn()} onDone={jest.fn()} />);
+    const without = render(<SummaryScreen title="t" summary={summaryFor(quiet.ctx, quiet.state)} narrative={null} onMore={jest.fn()} onDone={jest.fn()} />);
     expect(without.queryByText('What changed')).toBeNull();
 
     const spoke = session();
     spoke.tickUntil(s => s.phase === 'active' && s.segmentIndex === 1);
     spoke.send({type: 'CORRECTION', direction: 'easier', source: 'voice', heard: 'easier'});
     spoke.tickUntil(s => s.phase === 'complete');
-    const withCard = render(<SummaryScreen title="t" summary={summaryFor(spoke.ctx, spoke.state)} onMore={jest.fn()} onDone={jest.fn()} />);
+    const withCard = render(<SummaryScreen title="t" summary={summaryFor(spoke.ctx, spoke.state)} narrative={null} onMore={jest.fn()} onDone={jest.fn()} />);
     expect(withCard.getByText('What changed')).toBeTruthy();
     expect(withCard.getByText(/You asked for easier/)).toBeTruthy();
+  });
+});
+
+describe('ExercisePhoto', () => {
+  it('shows a lettered tile when a movement has no photograph yet', () => {
+    const screen = render(<ExercisePhoto exercise={exercise('adapt_step_jacks')} size={240} />);
+    expect(screen.getByText('S')).toBeTruthy();
   });
 });

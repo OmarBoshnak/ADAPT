@@ -6,7 +6,8 @@
     "types": ["jest"],
     "paths": {
       "~/*": ["./src/*"],
-      "@adapt/core": ["../../packages/core/dist/index"]
+      "@adapt/core": ["../../packages/core/dist/index"],
+      "@adapt/data/session-graph.json": ["../../packages/data/generated/session-graph.json"]
     }
   }
 }

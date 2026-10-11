@@ -5,6 +5,8 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { protocol } from '@adapt/core';
 
 import { RoomRegistry, type Conn, type RegistryOptions } from './rooms.js';
+import { registerCoach, type CoachClient } from './coach.js';
+import { registerTraces } from './traces.js';
 
 export interface RelayOptions {
   host?: string;
@@ -13,6 +15,9 @@ export interface RelayOptions {
   sweepMs?: number;
   helloTimeoutMs?: number;
   registry?: RegistryOptions;
+  traces?: { dir: string; onSaved?: (file: string) => void };
+  coach?: CoachClient | null;
+  coachTimeoutMs?: number;
 }
 
 export interface Relay {
@@ -41,6 +46,9 @@ export async function startRelay(opts: RelayOptions = {}): Promise<Relay> {
   await app.register(websocket, { options: { maxPayload: protocol.MAX_MESSAGE_BYTES } });
 
   const startedAt = Date.now();
+  if (opts.traces) registerTraces(app, opts.traces.dir, opts.traces.onSaved);
+  registerCoach(app, opts.coach ?? null, opts.coachTimeoutMs);
+
   app.get('/health', async () => ({ ok: true, ...registry.stats(), uptimeSec: Math.round((Date.now() - startedAt) / 1000) }));
 
   let nextId = 0;

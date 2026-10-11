@@ -1,8 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated, Easing, StyleSheet, Text, View} from 'react-native';
-import {exclusionLabels, generatePlan, type Profile, type SessionPlan} from '@adapt/core';
+import {acceptCoachPlan, exclusionLabels, generatePlan, planRequest, type Profile, type SessionPlan} from '@adapt/core';
 
 import {graph} from '~/exercises/catalog';
+import {askCoach} from '~/state/coach';
 import {colors, px, radius, type} from '~/theme';
 import {Screen} from '~/ui/Screen';
 import type {SessionRequest} from './SetupScreen';
@@ -11,9 +12,16 @@ const MIN_DISPLAY_MS = 3000;
 const TRACK = 720;
 const SEGMENT = 240;
 
-type Props = {profile: Profile; request: SessionRequest; seed: number; onReady: (plan: SessionPlan) => void};
+type Props = {
+  profile: Profile;
+  request: SessionRequest;
+  seed: number;
+  /** Off when a filmed plan must be reproducible. */
+  useCoach: boolean;
+  onReady: (plan: SessionPlan) => void;
+};
 
-export function GeneratingScreen({profile, request, seed, onReady}: Props) {
+export function GeneratingScreen({profile, request, seed, useCoach, onReady}: Props) {
   const sweep = useRef(new Animated.Value(0)).current;
   const ready = useRef(onReady);
   ready.current = onReady;
@@ -27,10 +35,25 @@ export function GeneratingScreen({profile, request, seed, onReady}: Props) {
   }, [sweep]);
 
   useEffect(() => {
-    const plan = generatePlan({graph, profile, durationMin: request.minutes, energy: request.energy, seed});
-    const timer = setTimeout(() => ready.current(plan), MIN_DISPLAY_MS);
-    return () => clearTimeout(timer);
-  }, [profile, request, seed]);
+    const input = {graph, profile, durationMin: request.minutes, energy: request.energy, seed};
+    const local = generatePlan(input);
+    const asked = planRequest(input);
+    const started = Date.now();
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    // The coach's choice is re-checked against the strain model; anything it gets wrong falls back to the local plan.
+    (useCoach ? askCoach(asked) : Promise.resolve(null)).then(reply => {
+      if (cancelled) return;
+      const check = reply ? acceptCoachPlan(input, asked, reply) : null;
+      const plan = check?.ok ? check.plan : local;
+      timer = setTimeout(() => ready.current(plan), Math.max(0, MIN_DISPLAY_MS - (Date.now() - started)));
+    });
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [profile, request, seed, useCoach]);
 
   const exclusion = exclusionLabels(profile)[0];
   const chips = [`${request.minutes} minutes`, `${capitalize(request.energy)} energy`];

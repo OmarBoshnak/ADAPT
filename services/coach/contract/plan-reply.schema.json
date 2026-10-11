@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "exerciseIds": {
+      "minItems": 1,
+      "maxItems": 12,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]{1,80}$"
+      }
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "rationale": {
+      "type": "string",
+      "maxLength": 400
+    }
+  },
+  "required": [
+    "exerciseIds",
+    "title",
+    "rationale"
+  ],
+  "additionalProperties": false
+}
