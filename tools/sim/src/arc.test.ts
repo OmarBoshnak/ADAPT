@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { buildGraph, threshold, type Profile, type RawExercise } from '@adapt/core';
+import { buildGraph, createSession, sessionLog, threshold, type Profile, type RawExercise } from '@adapt/core';
 import { CURATION, DATA_VERSION, HOME_PACK } from '@adapt/data';
 
 import { runSession } from './run.js';
@@ -72,6 +72,50 @@ describe('the two-session demo arc', () => {
     const solo = runSession({ ...common, profile: person, paired: false });
     expect(solo.state.adaptations.some((a) => a.trigger === 'predicted-strain')).toBe(true);
     expect(solo.state.phase).toBe('complete');
+  });
+});
+
+describe('the same arc on the TV alone: no phone, one remote press', () => {
+  const solo = { ...common, paired: false };
+  let pressed = false;
+  const s1 = runSession({
+    ...solo,
+    profile: person,
+    speak: (s) => {
+      const auto = s.adaptations.find((a) => a.trigger === 'predicted-strain');
+      if (pressed || !auto || s.phase !== 'active' || s.sessionElapsedSec < auto.atSec + 60) return null;
+      pressed = true;
+      return { type: 'CORRECTION', direction: 'easier', source: 'button' };
+    },
+  });
+  const learned = { ...person, personalBias: s1.state.bias };
+  const s2 = runSession({ ...solo, profile: learned });
+  const firstAuto = (r: typeof s1) => r.state.adaptations.find((a) => a.trigger === 'predicted-strain')!;
+  const log = (r: typeof s1, profile: Profile) => {
+    const ctx = { graph, profile, energy: 'medium' as const };
+    const start = createSession(ctx, r.plan);
+    return [...sessionLog(ctx, null, start), ...sessionLog(ctx, start, r.state)];
+  };
+
+  it('session 1 learns from the press', () => {
+    expect(s1.state.corrections).toHaveLength(1);
+    expect(s1.state.bias).toBeLessThan(1);
+  });
+
+  it('session 2 adapts sooner with nobody asking', () => {
+    expect(s2.state.corrections).toHaveLength(0);
+    expect(firstAuto(s2).atSec).toBeLessThan(firstAuto(s1).atSec);
+  });
+
+  it('the session logs show the learned bias doing it', () => {
+    const one = log(s1, person);
+    const two = log(s2, learned);
+    expect(one[0]).toContain('learned bias 1.00');
+    expect(one.some((l) => l.startsWith('learn') && l.includes(`→ ${s1.state.bias.toFixed(2)}`))).toBe(true);
+    expect(two[0]).toContain(`learned bias ${learned.personalBias.toFixed(2)}`);
+    expect(two.find((l) => l.startsWith('adapt'))).toContain('predicted-strain');
+    expect(two.some((l) => l.startsWith('learn'))).toBe(false);
+    expect(two.at(-1)).toMatch(/^complete/);
   });
 });
 

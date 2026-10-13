@@ -15,6 +15,7 @@
     "^~/(.*)$": "<rootDir>/src/$1",
     "^@adapt/core$": "<rootDir>/../../packages/core/dist/index.js",
     "^@adapt/data/session-graph.json$": "<rootDir>/../../packages/data/generated/session-graph.json",
+    "^@adapt/data/illustrations.json$": "<rootDir>/../../packages/data/generated/illustrations.json",
     "^zod$": "<rootDir>/../../node_modules/zod"
   },
   "modulePaths": [

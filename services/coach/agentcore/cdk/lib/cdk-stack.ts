@@ -125,16 +125,6 @@ export class AgentCoreStack extends Stack {
     }
     this.application = new AgentCoreApplication(this, 'Application', appProps as any);
 
-    // ADAPT's coach calls Claude through the Anthropic SDK's Bedrock client, which uses the bedrock-mantle endpoint.
-    for (const env of this.application.environments.values()) {
-      env.runtime.role.addToPrincipalPolicy(
-        new iam.PolicyStatement({
-          actions: ['bedrock-mantle:CreateInference'],
-          resources: [`arn:${this.partition}:bedrock-mantle:${this.region}:${this.account}:*`],
-        })
-      );
-    }
-
     // Create AgentCoreMcp if there are gateways configured
     if (mcpSpec?.agentCoreGateways && mcpSpec.agentCoreGateways.length > 0) {
       new AgentCoreMcp(this, 'Mcp', {

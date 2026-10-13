@@ -20,6 +20,8 @@ const relay = await startRelay({
   logger: verbose,
   ...(traces ? { traces } : {}),
   coach,
+  onCoachCall: (c) =>
+    console.log(`[${stamp()}] coach ${c.task} ${c.outcome} in ${(c.ms / 1000).toFixed(1)} s${c.detail ? `: ${c.detail}` : ''}`),
   registry: {
     onEvent: (e) => {
       if (e.type === 'opened') console.log(`[${stamp()}] room ${e.code} opened`);

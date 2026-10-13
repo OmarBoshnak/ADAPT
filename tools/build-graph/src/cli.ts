@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Builds generated/graph.json (whole corpus) and generated/session-graph.json (what the TV bundles).
+// Builds generated/graph.json (whole corpus), and generated/session-graph.json and illustrations.json (what the TV bundles).
 // Exits non-zero if any pool ladder is broken.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -16,7 +16,9 @@ import {
   type Profile,
   type RawExercise,
 } from '@adapt/core';
-import { CURATION, DATA_VERSION, HOME_PACK } from '@adapt/data';
+import { CURATION, DATA_VERSION, HOME_PACK, ILLUSTRATION_CREDIT, ILLUSTRATIONS } from '@adapt/data';
+
+import { buildIllustrations } from './illustrations.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dataRoot = resolve(here, '../../../packages/data');
@@ -42,6 +44,9 @@ const sessionGraph: ExerciseGraph = {
   exercises: Object.fromEntries(graph.sessionPool.map((id) => [id, graph.exercises[id] as Exercise])),
 };
 writeFileSync(resolve(outDir, 'session-graph.json'), JSON.stringify(sessionGraph, null, 2) + '\n');
+
+const movements = buildIllustrations(resolve(dataRoot, 'illustrations/workout-guide'), ILLUSTRATIONS, new Set(graph.sessionPool));
+writeFileSync(resolve(outDir, 'illustrations.json'), JSON.stringify({ credit: ILLUSTRATION_CREDIT, movements }) + '\n');
 
 const all = Object.values(graph.exercises);
 const fromDataset = all.filter((e) => e.source === 'free-exercise-db');

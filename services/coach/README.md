@@ -19,8 +19,9 @@ Every answer is checked three times before it reaches a screen:
 3. **On the TV.** `acceptCoachPlan` in `packages/core` re-runs the choice through the real strain model, and
    `acceptNarrative` re-checks the copy rules.
 
-If any check fails, or the coach takes longer than four seconds, the TV uses its local generator and the built-in
-sentence. Nothing on screen depends on the cloud.
+The TV asks for a plan while the viewer is still choosing on the setup screen, so the agent's two model calls are
+usually done by the time Generate is pressed. If any check fails, or the answer is not back four seconds after Generate,
+the TV uses its local generator and the built-in sentence. Nothing on screen depends on the cloud.
 
 The request and reply shapes are generated from the zod schemas in `packages/core` (`npm run contract`) into
 `contract/`. Python validates against those files, and tests on both sides fail if they drift.
@@ -50,18 +51,23 @@ Needs AWS credentials (`aws configure`), Claude enabled in Bedrock, and the Agen
 npx @aws/agentcore deploy
 ```
 
-The first deploy asks for an account and region and records them in `agentcore/aws-targets.json`. The runtime role
-gets `bedrock-mantle:CreateInference` (see `agentcore/cdk/lib/cdk-stack.ts`) because Claude is called through the
-Anthropic SDK's Bedrock client. Then run the relay with the runtime's ARN:
+The first deploy asks for an account and region and records them in `agentcore/aws-targets.json`. Claude is called
+through the Anthropic SDK's Bedrock client (`InvokeModel`), which the runtime's default role already allows. Then, from
+the repository root, run the relay against the deployed runtime (it reads the ARN from `agentcore/.cli/deployed-state.json`):
 
 ```bash
-COACH_AGENT_ARN=<runtime arn> AWS_REGION=<region> npm run relay
+npm run relay:coach
 ```
 
-The relay keeps the runtime warm with a ping every ten minutes.
+The relay pings the runtime when it starts and every ten minutes after, to keep a session warm. A call that reaches a
+session still starting fails with a 502, so the relay holds calls until that first ping has answered. A cold start
+takes six to nine seconds; after that a plan takes five to seven, and a summary sentence under two.
 
 | Setting | Default | |
 | --- | --- | --- |
-| `COACH_MODEL_ID` | `anthropic.claude-opus-5-5` | Claude Opus 5.5 on Bedrock |
+| `COACH_MODEL_ID` | `us.anthropic.claude-sonnet-4-6` | Claude Sonnet 4.6 through the US cross-region inference profile |
 | `COACH_EFFORT` | `low` | Short, structured jobs under a four-second deadline |
 | `AWS_REGION` | `us-east-1` | |
+
+Sonnet 4.6 returns a plan in about six seconds, against eleven for Opus 4.6, and the job is choosing among options
+that are already valid. Any Claude model the account can use works by setting `COACH_MODEL_ID`.

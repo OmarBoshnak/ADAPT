@@ -1,9 +1,9 @@
 import os
 
-from anthropic import AsyncAnthropicBedrockMantle
+from anthropic import AsyncAnthropicBedrock
 from strands.models.anthropic import AnthropicModel
 
-DEFAULT_MODEL_ID = "anthropic.claude-opus-5-5"
+DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
 
 
 class BedrockClaude(AnthropicModel):
@@ -11,11 +11,11 @@ class BedrockClaude(AnthropicModel):
 
     def __init__(self, *, region: str, **config):
         super().__init__(**config)
-        self.client = AsyncAnthropicBedrockMantle(aws_region=region)
+        self.client = AsyncAnthropicBedrock(aws_region=region)
 
     @staticmethod
     def _format_tool_choice(tool_choice) -> dict:
-        # Current Claude models reject forced tool choice; the prompt already asks for the tool.
+        # The newest Claude models reject forced tool choice; the prompt already asks for the tool.
         return {"tool_choice": {"type": "auto"}} if tool_choice else {}
 
 

@@ -3,7 +3,7 @@ import {StyleSheet, Text, View} from 'react-native';
 import type {Adaptation} from '@adapt/core';
 
 import {exercise} from '~/exercises/catalog';
-import {ExercisePhoto} from '~/exercises/ExercisePhoto';
+import {ExerciseVisual} from '~/exercises/ExerciseVisual';
 import {colors, px, radius, type} from '~/theme';
 import {Icon} from '~/ui/Icon';
 
@@ -15,11 +15,11 @@ export function DecisionPanel({adaptation, startsIn}: {adaptation: Adaptation; s
 
   return (
     <View style={styles.panel}>
-      <ExercisePhoto exercise={switching ? to : from} size={180}>
+      <ExerciseVisual exercise={switching ? to : from} size={180} animate>
         <View style={styles.badge}>
           <Icon name="trendDown" size={32} color={colors.fieldWarm} />
         </View>
-      </ExercisePhoto>
+      </ExerciseVisual>
       <View style={styles.text}>
         <Text style={styles.eyebrow}>Adaptive decision</Text>
         <Text style={styles.main}>{switching ? `Switching to ${to.name}` : `Ending ${from.name} early`}</Text>

@@ -1,9 +1,11 @@
 import React from 'react';
-import {fireEvent, render} from '@testing-library/react-native';
+import {act, fireEvent, render} from '@testing-library/react-native';
 import {summaryFor} from '@adapt/core';
+import {Path} from '@amazon-devices/react-native-svg';
 
 import {exercise} from '~/exercises/catalog';
-import {ExercisePhoto} from '~/exercises/ExercisePhoto';
+import {ExerciseVisual} from '~/exercises/ExerciseVisual';
+import {illustrations} from '~/exercises/illustrations';
 import {HealthStep} from '~/features/onboarding/HealthStep';
 import {SwapScreen} from '~/features/session/SwapScreen';
 import {SetupScreen} from '~/features/setup/SetupScreen';
@@ -33,6 +35,18 @@ describe('SetupScreen', () => {
     fireEvent.press(screen.getByText('High'));
     fireEvent.press(screen.getByText('Generate workout'));
     expect(onGenerate).toHaveBeenCalledWith({minutes: 4, energy: 'high'});
+  });
+
+  it('reports the choice once it settles, before Generate', () => {
+    const onChoice = jest.fn();
+    const screen = render(<SetupScreen profile={profile()} onChoice={onChoice} onGenerate={jest.fn()} />);
+    fireEvent.press(screen.getByText('4 min'));
+    fireEvent.press(screen.getByText('High'));
+    act(() => {
+      jest.advanceTimersByTime(600);
+    });
+    expect(onChoice).toHaveBeenCalledTimes(1);
+    expect(onChoice).toHaveBeenCalledWith({minutes: 4, energy: 'high'});
   });
 });
 
@@ -87,9 +101,34 @@ describe('SummaryScreen', () => {
   });
 });
 
-describe('ExercisePhoto', () => {
-  it('shows a lettered tile when a movement has no photograph yet', () => {
-    const screen = render(<ExercisePhoto exercise={exercise('adapt_step_jacks')} size={240} />);
+describe('ExerciseVisual', () => {
+  const opacities = (screen: ReturnType<typeof render>) => screen.UNSAFE_getAllByType(Path).map(p => p.props.opacity);
+
+  it('shows a lettered tile when a movement has no licensed drawing', () => {
+    const screen = render(<ExerciseVisual exercise={exercise('adapt_step_jacks')} size={240} />);
     expect(screen.getByText('S')).toBeTruthy();
+  });
+
+  it('draws the movement instead of a tile when it has a drawing', () => {
+    const screen = render(<ExerciseVisual exercise={exercise('adapt_jumping_jacks')} size={240} />);
+    expect(screen.queryByText('J')).toBeNull();
+    expect(opacities(screen)).toEqual([1, 0, 0]);
+  });
+
+  it('loops the frames 1-2-3-2 while animating, and holds the first frame otherwise', () => {
+    const {frameMs} = illustrations.adapt_jumping_jacks!;
+    const screen = render(<ExerciseVisual exercise={exercise('adapt_jumping_jacks')} size={240} animate />);
+    const seen = [opacities(screen).indexOf(1)];
+    for (let i = 0; i < 4; i++) {
+      act(() => {
+        jest.advanceTimersByTime(frameMs);
+      });
+      seen.push(opacities(screen).indexOf(1));
+    }
+    expect(seen).toEqual([0, 1, 2, 1, 0]);
+  });
+
+  it('only has drawings for movements the TV can show', () => {
+    for (const id of Object.keys(illustrations)) expect(exercise(id).id).toBe(id);
   });
 });

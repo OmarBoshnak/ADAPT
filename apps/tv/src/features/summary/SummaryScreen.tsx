@@ -27,7 +27,7 @@ export function SummaryScreen({title, summary, narrative, onMore, onDone}: Props
       <Text style={styles.title}>{title}</Text>
       <View style={styles.stats}>
         <Stat label="Duration" value={clock(summary.durationSec)} />
-        <Stat label="Total reps" value={String(summary.totalReps)} />
+        <Stat label="Estimated reps" value={String(summary.totalReps)} />
         <Stat label="Adaptations" value={String(summary.adaptations.length)} caption={unique(summary.adaptedExerciseNames).join(', ')} />
       </View>
       <View style={styles.timeline}>

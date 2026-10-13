@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import type {Exercise} from '@adapt/core';
 
-import {ExercisePhoto} from '~/exercises/ExercisePhoto';
+import {ExerciseVisual} from '~/exercises/ExerciseVisual';
 import {metaLabels} from '~/exercises/catalog';
 import {colors, px, radius, type} from '~/theme';
 import {Button} from '~/ui/Button';
@@ -87,7 +87,7 @@ function Card({exercise, reason, reasonColor, description, onPress, preferred}: 
       accessibilityRole="button"
       style={styles.card}
       focusedStyle={styles.cardFocused}>
-      <ExercisePhoto exercise={exercise} size={180} />
+      <ExerciseVisual exercise={exercise} size={180} />
       <Text style={[styles.reason, {color: reasonColor}]}>{reason}</Text>
       <Text style={styles.name}>{exercise.name}</Text>
       <Text style={styles.description}>{description}</Text>

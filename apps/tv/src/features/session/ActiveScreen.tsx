@@ -3,7 +3,7 @@ import {StyleSheet, Text, View} from 'react-native';
 import {ADAPTING_SEC, type LiveSnapshot, type Projection, type SessionSegment} from '@adapt/core';
 
 import {exercise} from '~/exercises/catalog';
-import {ExercisePhoto} from '~/exercises/ExercisePhoto';
+import {ExerciseVisual} from '~/exercises/ExerciseVisual';
 import {colors, px, type} from '~/theme';
 import {Screen} from '~/ui/Screen';
 import {BottomBar} from './BottomBar';
@@ -36,7 +36,7 @@ export function ActiveScreen({snapshot, projection}: Props) {
         <View style={styles.stage}>
           <View style={styles.left}>
             <View style={styles.exercise}>
-              <ExercisePhoto exercise={current} size={240} rounded={px(20)} />
+              <ExerciseVisual exercise={current} size={300} rounded={px(20)} animate />
               <View style={styles.names}>
                 <Text style={type.eyebrow(26)}>Current exercise</Text>
                 <Text style={styles.name} numberOfLines={2}>{current.name}</Text>
@@ -51,6 +51,7 @@ export function ActiveScreen({snapshot, projection}: Props) {
               {Math.floor(s.repsThisSegment)}
               <Text style={styles.repsTotal}>{` / ${seg.targetReps}`}</Text>
             </Text>
+            <Text style={styles.repsLabel}>Estimated reps</Text>
           </View>
         </View>
         <BottomBar upNext={nextSeg ? exercise(nextSeg.exerciseId).name : null} paired={snapshot.mode === 'paired'} />
@@ -73,4 +74,5 @@ const styles = StyleSheet.create({
   right: {flex: 1, alignItems: 'center'},
   reps: {...type.title(72), marginTop: px(48)},
   repsTotal: {color: colors.textDim},
+  repsLabel: {...type.eyebrow(24), marginTop: px(8)},
 });

@@ -1,0 +1,17 @@
+{
+  "targets": {
+    "default": {
+      "resources": {
+        "runtimes": {
+          "adapt_coach": {
+            "runtimeId": "adaptcoach_adapt_coach-LeP580G8rd",
+            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:313951301020:runtime/adaptcoach_adapt_coach-LeP580G8rd",
+            "roleArn": "arn:aws:iam::313951301020:role/AgentCore-adaptcoach-defa-ApplicationAgentAdaptCoac-RGTVVGQaaXJ6"
+          }
+        },
+        "stackName": "AgentCore-adaptcoach-default",
+        "deployHash": "9f054bc5c653e959"
+      }
+    }
+  }
+}

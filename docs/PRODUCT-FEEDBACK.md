@@ -68,13 +68,15 @@ shells, and the `--non-interactive` flag that fixes it is undocumented in the in
 
 **Building on it (Phase 3).** The TV app is React Native 0.83 on Vega. Porting 13 designed screens went smoothly:
 `Pressable` focus events, `hasTVPreferredFocus` and `TVFocusGuideView` with `trapFocusLeft/Right` covered every
-navigation need, the ported `react-native-svg` drew the live strain chart unchanged, and AsyncStorage is built into
-the platform package. Custom fonts load by filename from `assets/fonts/` with no configuration. A WebSocket from
+navigation need, the ported `react-native-svg` drew the live strain chart unchanged. Custom fonts load by filename from `assets/fonts/` with no configuration. A WebSocket from
 inside the app reached a relay on the host at `10.0.2.2` first time. `inputd-cli button_press` made it possible to
 drive the entire onboarding-to-workout flow unattended.
 
-**The two sharp edges** were a custom Metro resolver silently removing Vega's React Native (FL-008 — a build-time
-check would fix it) and the lack of any CLI screenshot (FL-009).
+**The sharp edges** were a custom Metro resolver silently removing Vega's React Native (FL-008 — a build-time
+check would fix it), the lack of any CLI screenshot (FL-009), and the `AsyncStorage` exported by
+`react-native-kepler`, which lost the most recent save when the app was stopped (FL-016). That one mattered most:
+it silently broke the learning loop across restarts, and only an on-device test that logged each save and load
+found it. The supported `async-storage` package fixed it.
 
 **Onboarding.** Good once past the installer (FL-005): the `helloWorld` template builds in under a minute, and a
 release package with Hermes bytecode is about 1 MB.
@@ -86,34 +88,42 @@ documentation, and each has a small, specific fix.
 
 ## AWS
 
-### Amazon Bedrock — 🚧 built, deploy pending
+### Amazon Bedrock — ✅ calling Claude
 
-**What we used it for.** Claude Opus 5.5 (`anthropic.claude-opus-5-5`) does two short jobs: ordering a session's
-movements from a pre-filtered list, and writing the one sentence on the post-session "What changed" card. Called
-through the Anthropic SDK's Bedrock client, at low effort, under a four-second deadline.
+**What we used it for.** Claude Sonnet 4.6 (`us.anthropic.claude-sonnet-4-6`) does two short jobs: ordering a
+session's movements from a pre-filtered list, and writing the one sentence on the post-session "What changed" card.
+Called through the Anthropic SDK's Bedrock client, at low effort. The TV asks while the viewer is still on the setup
+screen and waits at most four seconds after Generate.
 
 **What worked well.** The model is used for what it is good at, choosing well among valid options and writing
 plainly, and nothing it says can reach the screen unchecked. Keeping it out of the safety path was easy because the
 contract is small: candidates in, an ordered list of ids out.
 
-**What needs work.** There are two ways to call Claude on Bedrock, Converse with versioned ARNs and the
-Messages-API endpoint (bedrock-mantle), and the IAM actions differ. Tooling built for one doesn't grant the other
-(FL-011).
+**What needs work.** Model access was the most confusing part of Bedrock. The catalog lists Claude Opus 5.5 as active and
+the availability API says the account is authorized, but every call is refused as "not available for this account",
+and the same API gives an identical answer for models that do work (FL-014). We found what this account can call only
+by probing each model. There are also two ways to call Claude on Bedrock, InvokeModel/Converse and the Messages-API
+endpoint (bedrock-mantle), with different IAM actions and different model availability; tooling built for one doesn't
+grant the other (FL-011).
 
-### Bedrock AgentCore — 🚧 built and packaged, deploy pending
+### Bedrock AgentCore — ✅ deployed
 
-**What we used it for.** Hosting the coach agent as an HTTP runtime. The relay invokes it with
-`InvokeAgentRuntime`, keeps one session warm with a ping every ten minutes, and the TV falls back to its local
-generator after four seconds.
+**What we used it for.** Hosting the coach agent as an HTTP runtime in us-east-1. The relay invokes it with
+`InvokeAgentRuntime` and keeps one session warm with a ping every ten minutes. The TV asks while the viewer is still on
+the setup screen and falls back to its local generator four seconds after Generate.
 
 **What worked well.** The runtime protocol is simple: `POST /invocations` and `GET /ping`. The same entrypoint runs
 locally with `uv run python main.py`, so the whole relay → coach path was tested before any deploy. The AgentCore CLI's
 bring-your-own-code path wrapped an existing agent without restructuring it, and `agentcore package` builds the
-CodeZip offline.
+CodeZip offline. The deploy itself was one command, CDK bootstrap included, and it saves the runtime ARN to a state
+file our relay script reads. Warm calls add little: a plan takes five to seven seconds end to end, about what the
+model takes locally.
 
 **What needs work.** The starter toolkit and the AgentCore CLI share a binary name and differ in project model, and the
 toolkit's deprecation only shows in help output (FL-010). The default runtime role lacks the permission the
-recommended Claude client needs (FL-011).
+Messages-API Claude client needs (FL-011). A call that arrives while a session is still starting gets a bare 502
+("check your CloudWatch logs") and never reaches the container, so it leaves no log; we queue calls behind a warm-up
+ping (FL-015).
 
 ### Strands Agents SDK — ✅
 
@@ -136,13 +146,16 @@ the model sits near a health-adjacent product.
 **What we used it for.** The exercise corpus: 876 exercises with real demonstration photographs,
 released under the Unlicense, vendored into the repo at commit `a859101`.
 
-**What worked well.** Genuinely excellent for what it is. Public-domain licensing made it safe to
-vendor and to show on video with no attribution burden. Consistent schema, real photography, and a
-combined `dist/exercises.json` that needed no preprocessing.
+**What worked well.** Genuinely excellent for what it is. Public-domain licensing for the data made
+it easy to vendor, and the consistent schema and combined `dist/exercises.json` needed no
+preprocessing.
 
 **What needs work.** It is a gym corpus, and we needed a home-workout one. Concretely, measured
 against the shipped data:
 
+- The photographs' origin is not documented. They came from `wrkout/exercises.json`, which states no source for
+  them, so the Unlicense on the repository cannot be taken as a licence for the images. We treat their reuse rights
+  as unverified.
 - 584 of 876 entries are `strength`; only 14 are `cardio` and 61 `plyometrics`.
 - Only 111 entries are `body only`, of which just 13 are cardio or plyometrics.
 - Of those 111, only **18 have a strictly-easier peer** sharing their muscles and category — so a

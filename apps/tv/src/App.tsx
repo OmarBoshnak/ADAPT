@@ -15,7 +15,7 @@ import {HomeScreen} from './features/home/HomeScreen';
 import {OnboardingFlow} from './features/onboarding/OnboardingFlow';
 import {PairingScreen} from './features/pairing/PairingScreen';
 import {SessionFlow} from './features/session/SessionFlow';
-import {GeneratingScreen} from './features/setup/GeneratingScreen';
+import {GeneratingScreen, preparePlan} from './features/setup/GeneratingScreen';
 import {SetupScreen, type SessionRequest} from './features/setup/SetupScreen';
 import {SummaryScreen} from './features/summary/SummaryScreen';
 import {useBack} from './hooks/useBack';
@@ -65,6 +65,8 @@ function Root() {
 
   const profile = stored?.profile ?? DEFAULT_PROFILE;
   const stats = stored?.stats ?? {sessions: 0, adaptations: 0};
+  const seed = config.demoSeed ?? stats.sessions + 1;
+  const useCoach = config.demoSeed === null;
   const startSession = () => setRoute(status.peer === 'present' ? {name: 'setup'} : {name: 'pairing'});
 
   const saveProfile = (next: Profile, then: Route) => {
@@ -103,14 +105,20 @@ function Root() {
     case 'pairing':
       return <PairingScreen onContinue={() => setRoute({name: 'setup'})} />;
     case 'setup':
-      return <SetupScreen profile={profile} onGenerate={request => setRoute({name: 'generating', request})} />;
+      return (
+        <SetupScreen
+          profile={profile}
+          onChoice={useCoach ? request => preparePlan(profile, request, seed) : undefined}
+          onGenerate={request => setRoute({name: 'generating', request})}
+        />
+      );
     case 'generating':
       return (
         <GeneratingScreen
           profile={profile}
           request={current.request}
-          seed={config.demoSeed ?? stats.sessions + 1}
-          useCoach={config.demoSeed === null}
+          seed={seed}
+          useCoach={useCoach}
           onReady={plan => setRoute({name: 'session', request: current.request, plan})}
         />
       );

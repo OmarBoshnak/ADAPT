@@ -69,7 +69,7 @@ export function SessionScreen({ code, onLeave }: Props) {
         {motion === false ? (
           <StatusRow tone="muted" text="No motion sensors here. The TV keeps adapting on its own prediction." />
         ) : snapshot.onFloor ? (
-          <StatusRow tone="ok" text="On the floor, reading movement" />
+          <StatusRow tone="ok" text="On the floor, feeling your steps" />
         ) : (
           <StatusRow tone="ask" text="Place me on the floor beside you, screen up" />
         )}

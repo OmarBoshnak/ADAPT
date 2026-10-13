@@ -2,6 +2,7 @@
 
 export { HOME_PACK } from './home-pack.js';
 export { CURATION } from './curation.js';
+export { ILLUSTRATIONS, ILLUSTRATION_CREDIT, ILLUSTRATION_SOURCE, type IllustrationSource } from './illustrations.js';
 
 export const DATA_VERSION = '0.2.0';
 

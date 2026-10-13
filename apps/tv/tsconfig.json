@@ -15,6 +15,9 @@
       ],
       "@adapt/data/session-graph.json": [
         "../../packages/data/generated/session-graph.json"
+      ],
+      "@adapt/data/illustrations.json": [
+        "../../packages/data/generated/illustrations.json"
       ]
     }
   },

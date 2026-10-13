@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { CoachClient } from './coach.js';
+import type { CoachCall, CoachClient } from './coach.js';
 import { startRelay, type Relay } from './server.js';
 
 let relay: Relay | null = null;
@@ -73,6 +73,39 @@ describe('relay coach proxy', () => {
     );
     relay = await startRelay({ host: '127.0.0.1', port: 0, coach: slow.coach, coachTimeoutMs: 50 });
     expect((await post(planRequest)).statusCode).toBe(504);
+  });
+
+  it('reports every call, with the reason when it did not answer', async () => {
+    const calls: CoachCall[] = [];
+    const { coach } = fakeCoach(async (p) => {
+      if ((p as { task: string }).task === 'ping') return { ok: true };
+      throw new Error('ThrottlingException');
+    });
+    relay = await startRelay({ host: '127.0.0.1', port: 0, coach, onCoachCall: (c) => calls.push(c) });
+    await post(planRequest);
+    expect(calls).toEqual([expect.objectContaining({ task: 'plan', outcome: 'failed', detail: 'Error: ThrottlingException' })]);
+  });
+
+  it('holds the first call until the warm-up has started the runtime', async () => {
+    const order: string[] = [];
+    let started = () => {};
+    const { coach } = fakeCoach(async (p) => {
+      const { task } = p as { task: string };
+      if (task === 'ping') {
+        await new Promise<void>((resolve) => (started = resolve));
+        order.push('warm');
+        return { ok: true };
+      }
+      order.push(task);
+      return { exerciseIds: ['adapt_jumping_jacks'], title: 'Reset', rationale: 'r' };
+    });
+    relay = await startRelay({ host: '127.0.0.1', port: 0, coach });
+    const res = post(planRequest);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(order).toEqual([]);
+    started();
+    expect((await res).statusCode).toBe(200);
+    expect(order).toEqual(['warm', 'plan']);
   });
 
   it('keeps the coach warm', async () => {

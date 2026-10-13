@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 
+import {illustrationCredit} from '~/exercises/illustrations';
 import type {Stats} from '~/state/store';
 import {colors, px, radius, type} from '~/theme';
 import {Button} from '~/ui/Button';
@@ -24,7 +25,10 @@ export function HomeScreen({stats, onStart, onEditProfile, onSettings}: Props) {
           <Option title="Edit my profile" subtitle="Injuries, conditions, and how long you usually train" onPress={onEditProfile} />
         </View>
       </View>
-      <Button label="Settings" variant="secondary" onPress={onSettings} />
+      <View style={styles.footer}>
+        <Button label="Settings" variant="secondary" onPress={onSettings} />
+        <Text style={styles.credit}>{illustrationCredit}</Text>
+      </View>
     </Screen>
   );
 }
@@ -64,4 +68,6 @@ const styles = StyleSheet.create({
   },
   optionFocused: {backgroundColor: colors.surfaceRaised, borderWidth: px(2), borderColor: colors.accent},
   optionSubtitle: {...type.body(28), marginTop: px(8)},
+  footer: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
+  credit: {...type.body(24), color: colors.textDim},
 });

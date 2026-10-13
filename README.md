@@ -2,9 +2,11 @@
 
 **Your workout reacts to you.**
 
-An adaptive fitness product for Amazon Fire TV. The TV runs the workout. A phone lies face-up on
-the floor beside you and reads motion from its accelerometer and gyroscope. When movement quality
-declines, the workout switches to an easier variation on its own — before you ask.
+An adaptive fitness product for Amazon Fire TV. The TV runs the workout and keeps an estimate of how
+demanding it has become. When that estimate reaches your threshold, the workout switches to an easier
+variation on its own, before you ask. Tell it you needed that sooner, and the next session steps in
+sooner. A phone on the floor beside you is optional: it takes voice corrections and feels your steps
+through the floor.
 
 Built for the Amazon Developer Hackathon 2026 · Fire TV track.
 
@@ -15,7 +17,9 @@ Built for the Amazon Developer Hackathon 2026 · Fire TV track.
 Most fitness apps wait to be told the workout is too hard. ADAPT predicts it. Every movement
 carries an intensity value; as a session runs the app accumulates *strain* — intensity multiplied
 by time — and weighs it against your profile. When predicted strain crosses a threshold, the
-workout adapts on its own. You can still speak up, and when you do, that is not just a command —
+workout adapts on its own. Strain is an estimate in its own unitless points (a minute of a movement
+with intensity *i* adds 2.2·*i*, a little more as the session goes on; a minute of rest removes 6). It
+is not heart rate, calories or any measurement of your body. You can still speak up, and when you do, that is not just a command —
 it is a correction. The model records that your strain curve is steeper than it assumed and shifts
 its threshold for next time.
 
@@ -25,6 +29,13 @@ So there are two distinct moments, and both are visible on screen:
 | --- | --- |
 | The system adapts unprompted | **"I noticed"** |
 | You correct the system | **"I learned"** |
+
+On the Vega Virtual Device, TV only: in session one the model switched Jumping Jacks to Step Jacks at 7:40, and a
+remote press asked for easier at 8:44, 69 seconds before the 9:53 the model expected, so the learned bias moved
+from 1.00 to 0.81. After the app was force-stopped and relaunched, session two loaded 0.81, made the same switch at
+6:49, and made the switch the person had asked for at 9:01 by itself. The app's own log of both sessions is in
+[docs/evidence](docs/evidence/two-session-arc-vvd.log), and `tools/sim/src/arc.test.ts` asserts the same arc on every
+test run.
 
 ---
 
@@ -60,8 +71,8 @@ sentence after the session. Remove either and the workout carries on.
 | 3 | Vega TV app — all 13 screens | ✅ complete — runs on the Vega Virtual Device |
 | 4 | Phone companion — floor sensor, voice, floor mode | ✅ complete — runs natively in the iOS Simulator; the sensor needs a real iPhone |
 | 5 | Live integration & tuning | 🚧 tooling done — waiting on real floor recordings |
-| 6 | AWS coach (Bedrock / AgentCore / Strands) | ✅ built and tested — deploy needs AWS credentials |
-| 7 | The learning loop on screen | ✅ complete |
+| 6 | AWS coach (Bedrock / AgentCore / Strands) | ✅ deployed to AgentCore, calling Claude Sonnet 4.6 on Bedrock |
+| 7 | The learning loop on screen | ✅ complete — verified across an app restart on the Vega Virtual Device ([log](docs/evidence/two-session-arc-vvd.log)) |
 | 8 | Open source, docs, video, submission | 🚧 code and docs done — publishing and filming remain |
 
 ---
@@ -153,8 +164,9 @@ remain, plus a load budget. Age, height, weight, injuries and conditions never l
 service, and a third time on the TV, where the real strain model must agree the plan reaches its threshold in the
 right part of the session. Generated sentences must pass the same copy rules as every string in the app.
 
-Anything that fails a check, or takes longer than four seconds, is replaced by the local generator and the built-in
-sentence, so nothing on screen depends on the cloud. Details: [services/coach](services/coach/README.md).
+The TV asks for the plan while the viewer is still choosing on the setup screen. Anything that fails a check, or is
+not back four seconds after Generate, is replaced by the local generator and the built-in sentence, so nothing on
+screen depends on the cloud. Details: [services/coach](services/coach/README.md).
 
 ---
 
@@ -282,9 +294,15 @@ npm run coach:dev
 COACH_URL=http://127.0.0.1:8080 npm run relay
 ```
 
-That runs the coach locally against Bedrock, which needs AWS credentials. Deploying it to AgentCore and pointing the
-relay at the runtime is two commands, described in [services/coach](services/coach/README.md). With no coach
-configured, the relay says so and the TV plans locally.
+That runs the coach locally against Bedrock, which needs AWS credentials. Once it is deployed to AgentCore
+([services/coach](services/coach/README.md)), one command runs the relay against the deployed runtime:
+
+```bash
+npm run relay:coach
+```
+
+The relay prints one line per coach call, with its outcome and time. With no coach configured, the relay says so and
+the TV plans locally.
 
 ---
 
@@ -342,8 +360,10 @@ into a live session, so a demo take can be repeated exactly. The recording check
 
 ## Design constraints worth knowing before you read the code
 
-**There is no camera.** Movement quality comes from phone accelerometer and gyroscope signal only.
-Nothing in this product observes the user visually, and nothing in the interface implies it does.
+**There is no camera, and nothing measures your body.** The only sensor is an optional phone lying
+on the floor. It feels vibration from your landings and steps and compares each movement with how it
+started, a rough relative signal that only nudges the estimate. Without a phone the TV adapts on the
+estimate alone, and nothing in the interface implies it is watching or measuring you.
 
 **Fire TV has no microphone.** Confirmed during Phase 0 — the devices ship none, and the remote's
 mic is reserved for Alexa at system level. Voice capture therefore lives on the phone, and a D-pad
@@ -377,7 +397,14 @@ regression test.
 
 Exercise content comes from [Free Exercise DB](https://github.com/yuhonas/free-exercise-db)
 (Unlicense, public domain), vendored at commit `a859101`. It supplies 876 exercises with real
-demonstration photographs.
+demonstration photographs. Those photographs were inherited from
+[wrkout/exercises.json](https://github.com/wrkout/exercises.json), which does not say where they came from, so ADAPT
+treats their reuse rights as unverified and does not ship them.
+
+The TV draws nine movements with three-frame illustrations from
+[Workout Guide](https://github.com/bryllim/workout-guide) by Bryl Lim (CC BY-SA 4.0), stored unchanged with their
+licence and per-frame records in [packages/data/illustrations](packages/data/illustrations/workout-guide/README.md) and
+credited on the Home screen. The other movements show a lettered tile.
 
 It is a gym corpus, not a home-workout one — only 111 entries are equipment-free, and just 18 of
 those have a strictly-easier peer to step down to. ADAPT therefore supplements it with a small
@@ -389,4 +416,5 @@ record declares its `source`, so provenance is always visible. Details in
 
 ## Licence
 
-Apache-2.0. The vendored dataset retains its own Unlicense terms.
+Apache-2.0. The vendored dataset retains its own Unlicense terms, and the Workout Guide drawings their CC BY-SA 4.0
+licence.

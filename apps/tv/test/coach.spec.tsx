@@ -8,7 +8,7 @@ import {SummaryScreen} from '~/features/summary/SummaryScreen';
 import {askCoach} from '~/state/coach';
 import {profile, session} from './fixtures';
 
-jest.mock('~/state/coach', () => ({askCoach: jest.fn()}));
+jest.mock('~/state/coach', () => ({askCoach: jest.fn(), askCoachEarly: jest.fn()}));
 const ask = askCoach as jest.MockedFunction<typeof askCoach>;
 
 const request = {minutes: 12, energy: 'medium' as const};

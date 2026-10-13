@@ -43,7 +43,7 @@ export function adaptationReason(ctx: ReasonContext): string {
     return 'Ending this one early — you’ve done the work.';
   }
   if (ctx.quality !== null && ctx.quality < QUALITY_REASON_CEILING) {
-    return 'Movement quality dropped across the last few reps.';
+    return 'Your steps on the floor have eased off since this one started.';
   }
   const minutes = ctx.sessionElapsedSec / 60;
   if (minutes >= 2) {

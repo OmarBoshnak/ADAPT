@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import type {Exercise} from '@adapt/core';
 
-import {ExercisePhoto} from '~/exercises/ExercisePhoto';
+import {ExerciseVisual} from '~/exercises/ExerciseVisual';
 import {metaLabels} from '~/exercises/catalog';
 import {colors, px, radius, type} from '~/theme';
 import {Icon} from '~/ui/Icon';
@@ -23,7 +23,7 @@ export function GetReadyScreen({resting, remaining, next, paired}: Props) {
         </View>
       )}
       <View style={styles.card}>
-        <ExercisePhoto exercise={next} size={200} />
+        <ExerciseVisual exercise={next} size={200} animate />
         <View style={styles.cardText}>
           <Text style={type.eyebrow(26)}>{resting ? 'Up next' : 'First up'}</Text>
           <Text style={styles.name}>{next.name}</Text>

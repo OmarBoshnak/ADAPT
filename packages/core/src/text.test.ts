@@ -23,7 +23,7 @@ describe('adaptationReason', () => {
   });
 
   it('names movement quality when it is what dropped', () => {
-    expect(adaptationReason({ ...base, quality: 0.5 })).toMatch(/Movement quality dropped/);
+    expect(adaptationReason({ ...base, quality: 0.5 })).toMatch(/eased off since this one started/);
   });
 
   it('says something sensible very early in a session', () => {

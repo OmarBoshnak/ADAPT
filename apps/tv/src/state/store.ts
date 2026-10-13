@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
-import {AsyncStorage} from '@amazon-devices/react-native-kepler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {Profile} from '@adapt/core';
 
 export type Stats = {sessions: number; adaptations: number};
@@ -21,10 +21,14 @@ export const DEFAULT_PROFILE: Profile = {
 
 async function load(): Promise<Stored | null> {
   const raw = await AsyncStorage.getItem(KEY);
-  if (!raw) return null;
-  const parsed = JSON.parse(raw) as Partial<Stored>;
-  if (!parsed.profile || !parsed.stats) return null;
-  return {profile: {...DEFAULT_PROFILE, ...parsed.profile}, stats: parsed.stats};
+  const parsed = raw ? (JSON.parse(raw) as Partial<Stored>) : null;
+  if (!parsed?.profile || !parsed.stats) {
+    console.log('[adapt] loaded · nothing saved');
+    return null;
+  }
+  const stored = {profile: {...DEFAULT_PROFILE, ...parsed.profile}, stats: parsed.stats};
+  console.log(`[adapt] loaded · bias ${stored.profile.personalBias.toFixed(2)} · ${stored.stats.sessions} sessions`);
+  return stored;
 }
 
 /** `stored` is undefined while loading and null when nothing has been saved yet. */
@@ -39,7 +43,9 @@ export function useStore() {
 
   const save = useCallback((next: Stored) => {
     setStored(next);
-    AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => undefined);
+    AsyncStorage.setItem(KEY, JSON.stringify(next))
+      .then(() => console.log(`[adapt] saved · bias ${next.profile.personalBias.toFixed(2)} · ${next.stats.sessions} sessions`))
+      .catch(e => console.warn(`[adapt] save failed · ${String(e)}`));
   }, []);
 
   return {stored, save};

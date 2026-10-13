@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "name": "default",
+    "description": "ADAPT coach",
+    "account": "313951301020",
+    "region": "us-east-1"
+  }
+]

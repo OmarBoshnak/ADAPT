@@ -3,7 +3,7 @@ import {Animated, Easing, StyleSheet, Text, View} from 'react-native';
 import {acceptCoachPlan, exclusionLabels, generatePlan, planRequest, type Profile, type SessionPlan} from '@adapt/core';
 
 import {graph} from '~/exercises/catalog';
-import {askCoach} from '~/state/coach';
+import {askCoach, askCoachEarly} from '~/state/coach';
 import {colors, px, radius, type} from '~/theme';
 import {Screen} from '~/ui/Screen';
 import type {SessionRequest} from './SetupScreen';
@@ -21,6 +21,19 @@ type Props = {
   onReady: (plan: SessionPlan) => void;
 };
 
+const inputFor = (profile: Profile, request: SessionRequest, seed: number) => ({
+  graph,
+  profile,
+  durationMin: request.minutes,
+  energy: request.energy,
+  seed,
+});
+
+/** Lets the coach start on a plan while the viewer is still choosing. */
+export function preparePlan(profile: Profile, request: SessionRequest, seed: number): void {
+  askCoachEarly(planRequest(inputFor(profile, request, seed)));
+}
+
 export function GeneratingScreen({profile, request, seed, useCoach, onReady}: Props) {
   const sweep = useRef(new Animated.Value(0)).current;
   const ready = useRef(onReady);
@@ -35,7 +48,7 @@ export function GeneratingScreen({profile, request, seed, useCoach, onReady}: Pr
   }, [sweep]);
 
   useEffect(() => {
-    const input = {graph, profile, durationMin: request.minutes, energy: request.energy, seed};
+    const input = inputFor(profile, request, seed);
     const local = generatePlan(input);
     const asked = planRequest(input);
     const started = Date.now();

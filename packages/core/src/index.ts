@@ -10,6 +10,7 @@ export * from './signal.js';
 export * from './synth.js';
 export * from './generator.js';
 export * from './session.js';
+export * from './session-log.js';
 import * as protocol from './protocol.js';
 export { protocol };
 export * from './relay-client.js';

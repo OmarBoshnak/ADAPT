@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {act, render} from '@testing-library/react-native';
-import {AsyncStorage} from '@amazon-devices/react-native-kepler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {DEFAULT_PROFILE, useStore, type Stored} from '~/state/store';
 

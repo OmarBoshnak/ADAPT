@@ -259,6 +259,12 @@ video's still frames.
 correct 1920×1080 frame that is entirely black — the display is GPU-composited). macOS window capture works only
 after granting the host app Screen Recording permission.
 
+**Update, 2026-10-11.** With Screen Recording granted, a full-screen capture shows the desktop where the Virtual Device
+window is, and `screencapture -l <window id>` fails with "could not create image from window": the window is excluded
+from capture. On the device, `gwsi-tool-screenshooter` segfaults for `app_user`. We verify on-device behaviour through
+the app's own log lines instead, which `loggingctl log -f -v <package>` shows as long as the log session is started
+after the app is installed.
+
 **Expected.** `vega device screenshot out.png`, as `adb exec-out screencap` provides on Android.
 
 **Actual.** No supported path. Everything else needed for automated UI testing exists — `inputd-cli button_press
@@ -315,7 +321,8 @@ Responses/ChatCompletions modes.
 
 **Actual.** It would have failed at the first model call after a successful deploy.
 
-**Workaround.** Added the statement to the project's `cdk-stack.ts` for every runtime role.
+**Workaround.** Added the statement to the project's `cdk-stack.ts` for every runtime role. (Later removed: the coach moved to the
+InvokeModel endpoint, which the default role covers. See FL-014.)
 
 **Suggestion.** Include `bedrock-mantle:CreateInference` in the runtime role by default, or add a `modelAccess` option
 to `agentcore.json`.
@@ -339,7 +346,7 @@ no supported way to point it at Bedrock.
 **Expected.** A provider option for forced-choice support, and a way to pass a client.
 
 **Actual.** Both had to be worked around in a 15-line subclass: replace `self.client` with
-`AsyncAnthropicBedrockMantle`, and map forced choices to `auto` (the system prompt already asks for the tool).
+the SDK's Bedrock client, and map forced choices to `auto` (the system prompt already asks for the tool).
 
 **Suggestion.** Accept a `client=` argument on `AnthropicModel`, and fall back to `auto` plus an instruction when the
 model rejects forced tool use.
@@ -363,6 +370,91 @@ also failed checksum twice when fetched over a flaky connection; pre-fetching wi
 `~/Library/Caches/ReactNative` fixed it.
 
 **Suggestion.** State the minimum Xcode per SDK in `expo doctor`, and retry downloads before verifying checksums.
+
+---
+
+## FL-014 — Claude models listed as active and authorized, then refused as "not available for this account"
+
+- **Date:** 2026-10-11
+- **Platform/tool:** Amazon Bedrock — Claude model access, us-east-1
+- **Severity:** major (forced a model change twelve days before the deadline)
+
+**Task attempted.** The coach's first real call to Claude Opus 5.5 on Bedrock, after signing in with `aws login`.
+
+**Steps taken.** `list-foundation-models` lists `anthropic.claude-opus-5-5` as `ACTIVE`, and
+`get-foundation-model-availability` reports it `AUTHORIZED`, entitlement `AVAILABLE`, region `AVAILABLE`. Every call
+returned 403: "anthropic.claude-opus-5-5 is not available for this account … contact AWS Sales". We then probed each
+Claude model with a one-line request. Through InvokeModel and Converse, Opus 4.6, Opus 4.5, Sonnet 4.6 and Haiku 4.5
+answered; Opus 4.7 and later, Sonnet 5 and later, Haiku 5.5 and Fable were refused. Through the Messages-API endpoint
+(bedrock-mantle) every model was refused or not found, including Haiku 4.5, which works through Converse.
+
+**Expected.** The catalog or the availability API says which models this account can call, or the error names what is
+missing (an agreement, a quota, an account requirement) and how to get it.
+
+**Actual.** The availability API returns the same answer for Haiku 4.5, which works, and Opus 5.5, which is refused.
+The only path offered is contacting sales.
+
+**Workaround.** Moved the coach to the Anthropic SDK's InvokeModel client and Claude Sonnet 4.6
+(`us.anthropic.claude-sonnet-4-6`), which the default AgentCore role already allows, and removed the FL-011 grant. The
+model is a setting, so a newer one is a configuration change once the account has access.
+
+**Suggestion.** Return an explicit reason from `get-foundation-model-availability` when invocation will be refused, and
+show it beside the model in the console's catalog.
+
+---
+
+## FL-015 — A call to an AgentCore session that is still starting fails with a 502 and leaves no log
+
+- **Date:** 2026-10-11
+- **Platform/tool:** Bedrock AgentCore Runtime — `InvokeAgentRuntime`
+- **Severity:** major (the first coach call after every relay start failed)
+
+**Task attempted.** Keep the coach warm: when the relay starts, it pings the runtime with the session id it will use
+for real calls.
+
+**Steps taken.** Started the relay and sent a request about a second later. The relay's call failed with
+`RuntimeClientError: Received error (502) from runtime. Please check your CloudWatch logs for more information.` The
+runtime's log group had no trace of it: only the ping, which completed two seconds after the failure. The same request
+sent once the ping had answered succeeded, and so did later ones.
+
+**Expected.** A second call to a session that is starting waits for it, or is rejected with a retryable error that
+says the session is initializing.
+
+**Actual.** A 502 that points at CloudWatch, where nothing was logged because the call never reached the container.
+
+**Workaround.** The relay holds coach calls until its warm-up ping has answered, within the call's own timeout. Three
+cold restarts in a row then answered in 7.7–9.5 seconds.
+
+**Suggestion.** Queue calls to a starting session, or return a typed, retryable error for them, and log rejected calls
+in the runtime's log group.
+
+---
+
+## FL-016 — The built-in AsyncStorage lost the last save when the app was stopped
+
+- **Date:** 2026-10-13
+- **Platform/tool:** Vega OS — `AsyncStorage` exported by `@amazon-devices/react-native-kepler`
+- **Severity:** major (the learning loop is the product's core claim)
+
+**Task attempted.** Prove on the Virtual Device that what a session learned survives an app restart: session one
+saves the learned bias, the app is stopped, and session two must start from that bias.
+
+**Steps taken.** Logged every save after `setItem` resolved, and the bias each session started with. Session one
+logged `saved · bias 0.81`; after `vega device terminate-app` and a relaunch, session two started with bias 1.00.
+The profile saved during onboarding, thirteen minutes earlier, had survived; the save from five seconds before the
+stop had not.
+
+**Expected.** A write whose promise has resolved is on disk.
+
+**Actual.** Recent writes were lost when the process was stopped.
+
+**Workaround.** Switched to the system-deployed `@amazon-devices/react-native-async-storage__async-storage`
+(imported as `@react-native-async-storage/async-storage` 1.23.1), which the Vega docs describe as persistent. With it,
+a save made five seconds before a forced stop was loaded by the next process.
+
+**Suggestion.** Deprecate the `AsyncStorage` export in `react-native-kepler` with a pointer to the supported package,
+or document that its writes are not durable until some later flush. It still type-checks and works until the app
+is stopped, so nothing warns you.
 
 ---
 

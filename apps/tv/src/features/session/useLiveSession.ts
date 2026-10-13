@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {LiveSession, type SessionContext, type SessionPlan} from '@adapt/core';
+import {LiveSession, sessionLog, type SessionContext, type SessionPlan, type SessionState} from '@adapt/core';
 
 import {useRelay} from '~/state/relay';
 
@@ -9,7 +9,12 @@ export function useLiveSession(ctx: SessionContext, plan: SessionPlan) {
   const [snapshot, setSnapshot] = useState(live.snapshot);
 
   useEffect(() => {
-    const unsubscribe = live.subscribe(setSnapshot);
+    let previous: SessionState | null = null;
+    const unsubscribe = live.subscribe(next => {
+      setSnapshot(next);
+      for (const line of sessionLog(ctx, previous, next.state)) console.log(`[adapt] ${line}`);
+      previous = next.state;
+    });
     const unlisten = relay.subscribe(message => live.receive(message));
     live.start();
     return () => {

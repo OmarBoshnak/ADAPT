@@ -11,6 +11,7 @@
     "./exercises.json": "./vendor/free-exercise-db/exercises.json",
     "./graph.json": "./generated/graph.json",
     "./session-graph.json": "./generated/session-graph.json",
+    "./illustrations.json": "./generated/illustrations.json",
     "./fixtures": "./dist/fixtures.js"
   },
   "scripts": {

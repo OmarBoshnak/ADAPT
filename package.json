@@ -43,6 +43,7 @@
     "phone:test": "npm --prefix apps/phone test",
     "tune": "tsc --build && node tools/tune/dist/cli.js",
     "relay:record": "tsc --build && node apps/relay/dist/main.js --record",
+    "relay:coach": "bash scripts/relay-coach.sh",
     "contract": "tsc --build && node tools/contract/dist/cli.js",
     "coach:test": "cd services/coach && uv run --group dev pytest -q",
     "coach:dev": "cd services/coach && uv run python main.py",

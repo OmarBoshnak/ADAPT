@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {exclusionLabels, learnedLine, type Energy, type Profile} from '@adapt/core';
 
@@ -18,11 +18,25 @@ const ENERGY: Array<[Energy, string]> = [
   ['high', 'High'],
 ];
 
-type Props = {profile: Profile; onGenerate: (request: SessionRequest) => void};
+const SETTLE_MS = 600;
 
-export function SetupScreen({profile, onGenerate}: Props) {
+type Props = {
+  profile: Profile;
+  /** Called once the choice has settled, before Generate is pressed. */
+  onChoice?: (request: SessionRequest) => void;
+  onGenerate: (request: SessionRequest) => void;
+};
+
+export function SetupScreen({profile, onChoice, onGenerate}: Props) {
   const [minutes, setMinutes] = useState(nearest(profile.defaultDurationMin));
   const [energy, setEnergy] = useState<Energy>('medium');
+  const chose = useRef(onChoice);
+  chose.current = onChoice;
+
+  useEffect(() => {
+    const timer = setTimeout(() => chose.current?.({minutes, energy}), SETTLE_MS);
+    return () => clearTimeout(timer);
+  }, [minutes, energy]);
   const exclusions = exclusionLabels(profile);
   const learned = learnedLine(profile.personalBias);
 

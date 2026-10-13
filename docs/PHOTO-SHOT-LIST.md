@@ -1,7 +1,11 @@
 # Photo shot list — ADAPT home pack
 
-22 demonstration photographs are needed for the movements ADAPT authored. The other 7 movements in
-the session pool come from Free Exercise DB and already have real photographs.
+**Superseded on 2026-10-11.** The TV now shows licensed Workout Guide drawings for nine movements and a
+lettered tile for the rest, and the Free Exercise DB photographs were removed because their rights could not
+be verified. Mixing photographs with the drawings would look inconsistent, so this list is kept only in case
+the visual system changes back to photography.
+
+22 demonstration photographs were planned for the movements ADAPT authored.
 
 These are **functional content, not decoration** (design spec, TV-6/7/9). They sit beside the
 exercise name, cropped square. Until they exist, every screen shows the defined fallback tile, so
