@@ -24,7 +24,7 @@ Deadline **October 23, 2026**. Everything here needs a person, an account or a c
 
 ## 3. Content
 
-- [x] Licensed drawings for 9 movements (Workout Guide, CC BY-SA 4.0), credited on the Home screen; the other 20
+- [x] Licensed drawings for 12 movements (Workout Guide, CC BY-SA 4.0), credited on the Home screen; the other 17
       show a lettered tile. Unverified dataset photos removed and backed up outside the repo.
 - [ ] Optional: drawings or film for the uncovered movements, starting with Step Jacks (the demo's key switch).
 

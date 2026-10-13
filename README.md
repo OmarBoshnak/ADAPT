@@ -401,7 +401,7 @@ demonstration photographs. Those photographs were inherited from
 [wrkout/exercises.json](https://github.com/wrkout/exercises.json), which does not say where they came from, so ADAPT
 treats their reuse rights as unverified and does not ship them.
 
-The TV draws nine movements with three-frame illustrations from
+The TV draws twelve movements with three-frame illustrations from
 [Workout Guide](https://github.com/bryllim/workout-guide) by Bryl Lim (CC BY-SA 4.0), stored unchanged with their
 licence and per-frame records in [packages/data/illustrations](packages/data/illustrations/workout-guide/README.md) and
 credited on the Home screen. The other movements show a lettered tile.

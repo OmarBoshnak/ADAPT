@@ -15,7 +15,7 @@ export function DecisionPanel({adaptation, startsIn}: {adaptation: Adaptation; s
 
   return (
     <View style={styles.panel}>
-      <ExerciseVisual exercise={switching ? to : from} size={180} animate>
+      <ExerciseVisual exercise={switching ? to : from} size={280} animate>
         <View style={styles.badge}>
           <Icon name="trendDown" size={32} color={colors.fieldWarm} />
         </View>

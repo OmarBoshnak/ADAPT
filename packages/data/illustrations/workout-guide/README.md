@@ -15,10 +15,10 @@ reads each frame's single path so the TV can draw it with `react-native-svg`, in
 | Drawing | Shown for |
 | --- | --- |
 | `jumping-jack` | Jumping Jacks |
-| `high-knees` | High Knees |
+| `high-knees` | High Knees, and High Knee March played more slowly |
 | `burpee` | Burpees |
 | `squat-thrust` | Squat Thrusts |
-| `skater-hop` | Skater Hops |
+| `skater-hop` | Skater Hops, Lateral Bound, and Skater Steps played more slowly |
 | `mountain-climber` | Mountain Climbers, and Slow Mountain Climbers played more slowly |
 | `bodyweight-squat` | Bodyweight Squat |
 | `jump-squat` | Freehand Jump Squat |

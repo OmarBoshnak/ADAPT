@@ -6,7 +6,6 @@ import {adaptsInLabel} from '@adapt/core';
 import {colors, px, type} from '~/theme';
 import {areaPath, linePath, toX, toY, untilLimit, type Point, type Scale} from '~/ui/chart';
 
-const WIDTH = 900;
 const HEIGHT = 180;
 const HEADROOM = 1.18;
 
@@ -17,10 +16,11 @@ type Props = {
   duration: number;
   /** TV-9: the line has reached the ceiling and the forecast is gone. */
   atThreshold?: boolean;
+  width?: number;
 };
 
-export function StrainCurve({history, forecast, threshold, duration, atThreshold = false}: Props) {
-  const sc: Scale = {width: WIDTH, height: HEIGHT, tMax: duration, sMax: threshold * HEADROOM};
+export function StrainCurve({history, forecast, threshold, duration, atThreshold = false, width = 900}: Props) {
+  const sc: Scale = {width, height: HEIGHT, tMax: duration, sMax: threshold * HEADROOM};
   const now = history[history.length - 1] ?? {t: 0, s: 0};
   const ahead = atThreshold ? {points: [], crossing: null} : untilLimit([now, ...forecast], threshold);
   const ceilingY = toY(threshold, sc);
@@ -31,10 +31,10 @@ export function StrainCurve({history, forecast, threshold, duration, atThreshold
   return (
     <View>
       <Text style={styles.eyebrow}>Predicted strain</Text>
-      <View style={styles.chart}>
-        <Svg width={px(WIDTH)} height={px(HEIGHT)} viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
+      <View style={{width: px(width), height: px(HEIGHT)}}>
+        <Svg width={px(width)} height={px(HEIGHT)} viewBox={`0 0 ${width} ${HEIGHT}`}>
           <Path d={areaPath(history, sc)} fill={colors.volt} opacity={0.12} />
-          <Line x1={0} y1={ceilingY} x2={WIDTH} y2={ceilingY} stroke={colors.amber} strokeWidth={2} strokeDasharray="10 8" />
+          <Line x1={0} y1={ceilingY} x2={width} y2={ceilingY} stroke={colors.amber} strokeWidth={2} strokeDasharray="10 8" />
           {ahead.points.length > 1 && (
             <Path d={linePath(ahead.points, sc)} stroke={colors.textDim} strokeWidth={6} strokeDasharray="18 12" strokeLinecap="round" fill="none" />
           )}
@@ -49,7 +49,7 @@ export function StrainCurve({history, forecast, threshold, duration, atThreshold
           )}
         </Svg>
         {label && (
-          <Text style={[styles.label, labelX > WIDTH * 0.72 ? {right: px(WIDTH - labelX + 18)} : {left: px(labelX + 18)}]}>
+          <Text style={[styles.label, labelX > width * 0.72 ? {right: px(width - labelX + 18)} : {left: px(labelX + 18)}]}>
             {label}
           </Text>
         )}
@@ -60,6 +60,5 @@ export function StrainCurve({history, forecast, threshold, duration, atThreshold
 
 const styles = StyleSheet.create({
   eyebrow: {...type.eyebrow(26), marginBottom: px(16)},
-  chart: {width: px(WIDTH), height: px(HEIGHT)},
   label: {...type.eyebrow(24, 0.1), color: colors.amber, position: 'absolute', top: px(-6)},
 });

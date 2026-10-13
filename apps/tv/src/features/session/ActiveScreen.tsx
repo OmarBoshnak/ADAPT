@@ -13,6 +13,10 @@ import {ListeningBar} from './ListeningBar';
 import {StrainCurve} from './StrainCurve';
 import {TopBar} from './TopBar';
 
+// The movement is the screen's largest element: it has to read from the sofa.
+const VISUAL = 560;
+const CHART = 640;
+
 type Props = {snapshot: LiveSnapshot; projection: Projection};
 
 export function ActiveScreen({snapshot, projection}: Props) {
@@ -34,16 +38,14 @@ export function ActiveScreen({snapshot, projection}: Props) {
       <View style={[styles.content, noticed && styles.dimmed]}>
         <TopBar title={s.plan.title} index={s.segmentIndex} count={s.plan.segments.length} progress={s.segmentElapsedSec / seg.durationSec} />
         <View style={styles.stage}>
-          <View style={styles.left}>
-            <View style={styles.exercise}>
-              <ExerciseVisual exercise={current} size={300} rounded={px(20)} animate />
-              <View style={styles.names}>
-                <Text style={type.eyebrow(26)}>Current exercise</Text>
-                <Text style={styles.name} numberOfLines={2}>{current.name}</Text>
-                {current.cue && <Text style={styles.cue}>{current.cue}</Text>}
-              </View>
+          <ExerciseVisual exercise={current} size={VISUAL} rounded={px(24)} animate />
+          <View style={styles.middle}>
+            <View>
+              <Text style={type.eyebrow(26)}>Current exercise</Text>
+              <Text style={styles.name} numberOfLines={2}>{current.name}</Text>
+              {current.cue && <Text style={styles.cue}>{current.cue}</Text>}
             </View>
-            <StrainCurve history={history} forecast={forecast} threshold={s.T} duration={duration} atThreshold={noticed} />
+            <StrainCurve history={history} forecast={forecast} threshold={s.T} duration={duration} atThreshold={noticed} width={CHART} />
           </View>
           <View style={styles.right}>
             <CountdownRing remaining={seg.durationSec - s.segmentElapsedSec} total={seg.durationSec} />
@@ -65,13 +67,11 @@ export function ActiveScreen({snapshot, projection}: Props) {
 const styles = StyleSheet.create({
   content: {flex: 1},
   dimmed: {opacity: 0.35},
-  stage: {flex: 1, flexDirection: 'row', alignItems: 'center'},
-  left: {width: '58%', gap: px(56)},
-  exercise: {flexDirection: 'row', alignItems: 'center', gap: px(32)},
-  names: {flex: 1},
-  name: {...type.display(88), marginTop: px(4)},
-  cue: {...type.body(36), marginTop: px(16)},
-  right: {flex: 1, alignItems: 'center'},
+  stage: {flex: 1, flexDirection: 'row', alignItems: 'center', gap: px(56)},
+  middle: {flex: 1, gap: px(48)},
+  name: {...type.display(72), marginTop: px(4)},
+  cue: {...type.body(34), marginTop: px(12)},
+  right: {width: px(400), alignItems: 'center'},
   reps: {...type.title(72), marginTop: px(48)},
   repsTotal: {color: colors.textDim},
   repsLabel: {...type.eyebrow(24), marginTop: px(8)},
