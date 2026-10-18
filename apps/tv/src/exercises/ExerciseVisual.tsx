@@ -8,7 +8,7 @@ import {illustrations} from './illustrations';
 
 type Props = {exercise: Exercise; size: number; rounded?: number; animate?: boolean; children?: ReactNode};
 
-/** The movement's drawing where one is licensed, otherwise its lettered tile. */
+/** The movement's drawing, or its lettered tile if it has none. */
 export function ExerciseVisual({exercise, size, rounded = radius.photo, animate = false, children}: Props) {
   const illustration = illustrations[exercise.id];
   const box = {width: px(size), height: px(size), borderRadius: rounded};

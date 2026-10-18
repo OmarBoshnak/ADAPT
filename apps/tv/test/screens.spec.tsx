@@ -104,8 +104,9 @@ describe('SummaryScreen', () => {
 describe('ExerciseVisual', () => {
   const opacities = (screen: ReturnType<typeof render>) => screen.UNSAFE_getAllByType(Path).map(p => p.props.opacity);
 
-  it('shows a lettered tile when a movement has no licensed drawing', () => {
-    const screen = render(<ExerciseVisual exercise={exercise('adapt_step_jacks')} size={240} />);
+  it('shows a lettered tile when a movement has no drawing', () => {
+    const undrawn = {...exercise('adapt_step_jacks'), id: 'Undrawn'};
+    const screen = render(<ExerciseVisual exercise={undrawn} size={240} />);
     expect(screen.getByText('S')).toBeTruthy();
   });
 

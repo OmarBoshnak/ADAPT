@@ -1,6 +1,6 @@
 // Workout Guide drawings (Bryl Lim, CC BY-SA 4.0), stored unchanged in illustrations/workout-guide.
-// Each has three frames, played 1-2-3-2 so one loop is one rep (or one step each side). A gentler version shares
-// its parent's drawing only where no frame shows both feet off the floor, and plays it slower.
+// Each has three frames, played 1-2-3-2 so one loop is one rep (or one step each side). Movements share a drawing
+// only where it shows their shape, and a gentler one only where no frame has both feet off the floor.
 
 export interface IllustrationSource {
   slug: string;
@@ -20,6 +20,27 @@ export const ILLUSTRATIONS: Record<string, IllustrationSource> = {
   adapt_slow_climbers: { slug: 'mountain-climber', frameMs: 600 },
   Bodyweight_Squat: { slug: 'bodyweight-squat', frameMs: 650 },
   Freehand_Jump_Squat: { slug: 'jump-squat', frameMs: 550 },
+  adapt_squat_calf_raises: { slug: 'bodyweight-squat', frameMs: 700 },
+  Star_Jump: { slug: 'jumping-jack', frameMs: 380 },
+  adapt_step_jacks: { slug: 'jumping-jack', frameMs: 500 },
+  adapt_toe_tap_jacks: { slug: 'jumping-jack', frameMs: 600 },
+  adapt_standing_march: { slug: 'high-knees', frameMs: 420 },
+  adapt_alternating_reverse_lunge: { slug: 'forward-lunge', frameMs: 700 },
+  Split_Jump: { slug: 'forward-lunge', frameMs: 450 },
+  adapt_step_back_burpees: { slug: 'half-burpee', frameMs: 750 },
+  adapt_side_step_touch: { slug: 'lateral-shuffle', frameMs: 600 },
+};
+
+// Drawn for ADAPT by tools/figures, in illustrations/adapt, where no Workout Guide drawing shows the movement.
+export const FIGURES: Record<string, IllustrationSource> = {
+  adapt_butt_kicks: { slug: 'butt-kick', frameMs: 280 },
+  adapt_butt_kick_march: { slug: 'butt-kick', frameMs: 450 },
+  Double_Leg_Butt_Kick: { slug: 'double-butt-kick', frameMs: 420 },
+  adapt_boxer_shuffle: { slug: 'boxer-shuffle', frameMs: 300 },
+  adapt_standing_punches: { slug: 'standing-punches', frameMs: 420 },
+  adapt_step_punch: { slug: 'step-punch', frameMs: 520 },
+  adapt_standing_climbers: { slug: 'standing-climber', frameMs: 520 },
+  adapt_reverse_toe_taps: { slug: 'reverse-toe-tap', frameMs: 620 },
 };
 
 export const ILLUSTRATION_SOURCE = {

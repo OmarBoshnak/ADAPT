@@ -38,7 +38,8 @@
     "moduleNameMapper": {
       "^~/(.*)$": "<rootDir>/src/$1",
       "^@adapt/core$": "<rootDir>/../../packages/core/dist/index.js",
-      "^@adapt/data/session-graph.json$": "<rootDir>/../../packages/data/generated/session-graph.json"
+      "^@adapt/data/session-graph.json$": "<rootDir>/../../packages/data/generated/session-graph.json",
+      "^@babel/runtime/(.*)$": "<rootDir>/node_modules/@babel/runtime/$1"
     }
   }
 }

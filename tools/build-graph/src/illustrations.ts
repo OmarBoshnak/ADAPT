@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import type { IllustrationSource } from '@adapt/data';
+import { FIGURES, ILLUSTRATIONS, type IllustrationSource } from '@adapt/data';
 
 export interface Illustration {
   frameMs: number;
@@ -35,4 +35,13 @@ export function buildIllustrations(
       return [id, { frameMs, frames }];
     }),
   );
+}
+
+/** The Workout Guide drawings and ADAPT's own figures; a movement may have only one. */
+export function buildAllIllustrations(dataRoot: string, pool: Set<string>): Record<string, Illustration> {
+  const guide = buildIllustrations(resolve(dataRoot, 'illustrations/workout-guide'), ILLUSTRATIONS, pool);
+  const own = buildIllustrations(resolve(dataRoot, 'illustrations/adapt'), FIGURES, pool);
+  const twice = Object.keys(own).filter((id) => id in guide);
+  if (twice.length) throw new Error(`drawn twice: ${twice.join(', ')}`);
+  return { ...guide, ...own };
 }

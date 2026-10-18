@@ -1,9 +1,10 @@
 schema-version = 1
 
 [package]
-title = "Basic UI React Native Application for project adapttv"
-version = "0.1.0"
+title = "ADAPT"
+version = "1.0.0"
 id = "com.adapt.tv"
+icon = "@image/app_icon.png"
 
 [os.version]
 min = "1.2"
@@ -21,9 +22,6 @@ id = "/com.amazon.kepler.svg_3@ISVG_0"
 
 [[needs.module]]
 id = "/com.amazon.kepler.async_storage__async_storage_2@IAsyncStorage__AsyncStorage_1"
-
-
-
 
 [components]
 [[components.interactive]]

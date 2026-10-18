@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { buildGraph, type RawExercise } from '@adapt/core';
-import { CURATION, DATA_VERSION, HOME_PACK, ILLUSTRATION_CREDIT, ILLUSTRATIONS } from '@adapt/data';
+import { CURATION, DATA_VERSION, HOME_PACK, ILLUSTRATION_CREDIT } from '@adapt/data';
 
-import { buildIllustrations, framePath } from './illustrations.js';
+import { buildAllIllustrations, buildIllustrations, framePath } from './illustrations.js';
 
 const data = (path: string) => fileURLToPath(new URL(`../../../packages/data/${path}`, import.meta.url));
 const json = (path: string) => JSON.parse(readFileSync(data(path), 'utf8'));
@@ -24,15 +24,15 @@ describe('generated files the TV bundles', () => {
   it('illustrations.json matches the stored artwork (run `npm run graph` if not)', () => {
     expect(json('generated/illustrations.json')).toEqual({
       credit: ILLUSTRATION_CREDIT,
-      movements: buildIllustrations(data('illustrations/workout-guide'), ILLUSTRATIONS, pool),
+      movements: buildAllIllustrations(data(''), pool),
     });
   });
 });
 
 describe('illustrations', () => {
-  it('only draw movements in the session pool, three frames each', () => {
-    const built = buildIllustrations(data('illustrations/workout-guide'), ILLUSTRATIONS, pool);
-    expect(Object.keys(built).length).toBeGreaterThan(0);
+  it('draw every movement in the session pool, three frames each', () => {
+    const built = buildAllIllustrations(data(''), pool);
+    expect(Object.keys(built).sort()).toEqual([...pool].sort());
     for (const ill of Object.values(built)) expect(ill.frames).toHaveLength(3);
     expect(() => buildIllustrations(data('illustrations/workout-guide'), { Not_A_Movement: { slug: 'burpee', frameMs: 500 } }, pool)).toThrow(
       /not in the session pool/,

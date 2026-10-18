@@ -38,6 +38,7 @@ __pycache__/
 # os / editor
 .DS_Store
 *.log
+!docs/evidence/*.log
 .idea/
 .vscode/*
 !.vscode/extensions.json

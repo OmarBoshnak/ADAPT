@@ -16,9 +16,9 @@ import {
   type Profile,
   type RawExercise,
 } from '@adapt/core';
-import { CURATION, DATA_VERSION, HOME_PACK, ILLUSTRATION_CREDIT, ILLUSTRATIONS } from '@adapt/data';
+import { CURATION, DATA_VERSION, HOME_PACK, ILLUSTRATION_CREDIT } from '@adapt/data';
 
-import { buildIllustrations } from './illustrations.js';
+import { buildAllIllustrations } from './illustrations.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dataRoot = resolve(here, '../../../packages/data');
@@ -45,7 +45,7 @@ const sessionGraph: ExerciseGraph = {
 };
 writeFileSync(resolve(outDir, 'session-graph.json'), JSON.stringify(sessionGraph, null, 2) + '\n');
 
-const movements = buildIllustrations(resolve(dataRoot, 'illustrations/workout-guide'), ILLUSTRATIONS, new Set(graph.sessionPool));
+const movements = buildAllIllustrations(dataRoot, new Set(graph.sessionPool));
 writeFileSync(resolve(outDir, 'illustrations.json'), JSON.stringify({ credit: ILLUSTRATION_CREDIT, movements }) + '\n');
 
 const all = Object.values(graph.exercises);

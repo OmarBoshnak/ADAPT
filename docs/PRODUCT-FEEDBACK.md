@@ -50,9 +50,14 @@ to keep.
 **What needs work.** The template lagging the runtime by four minor versions (FL-006) is the one thing
 that makes starting a new project harder than it should be.
 
-### Vega OS / Vega Developer Tools — 🚧 adopted as the primary TV target
+**Onboarding.** Quick once we chose the newest version that has a template, which then ran on the Android TV
+emulator.
 
-**What we are using it for.** The TV app. We moved from Fire OS to Vega because the Vega Virtual
+**Would we build with it again?** Yes for Fire OS. For new Fire TV work we would start on Vega.
+
+### Vega OS / Vega Developer Tools — ✅ the OS we shipped on
+
+**What we used it for.** The TV app. We moved from Fire OS to Vega because the Vega Virtual
 Device is the only simulator Amazon ships for Fire TV — the Android TV AVD recommended for Fire OS
 is not obviously what the hackathon rules mean by "the Fire TV/Vega simulator" (FL-002).
 
@@ -106,6 +111,12 @@ by probing each model. There are also two ways to call Claude on Bedrock, Invoke
 endpoint (bedrock-mantle), with different IAM actions and different model availability; tooling built for one doesn't
 grant the other (FL-011).
 
+**Onboarding.** Credentials were quick with `aws login`. Reaching a first successful Claude call was slow, entirely
+because of model access: we had to probe models one at a time to find one this account could use (FL-014).
+
+**Would we build with it again?** Yes. Once a model answers, the integration is a few lines through the Anthropic SDK,
+and keeping the credentials in the relay means the TV never holds any.
+
 ### Bedrock AgentCore — ✅ deployed
 
 **What we used it for.** Hosting the coach agent as an HTTP runtime in us-east-1. The relay invokes it with
@@ -125,6 +136,11 @@ Messages-API Claude client needs (FL-011). A call that arrives while a session i
 ("check your CloudWatch logs") and never reaches the container, so it leaves no log; we queue calls behind a warm-up
 ping (FL-015).
 
+**Onboarding.** One `agentcore deploy` from an agent we already had, once we had picked the right CLI (FL-010).
+
+**Would we build with it again?** Yes. The deployed runtime runs the same entrypoint as the local one, so what we tested
+on the laptop is what the relay calls by ARN.
+
 ### Strands Agents SDK — ✅
 
 **What we used it for.** The coach agent: a system prompt, one tool (`validate_plan`, so the agent checks its own
@@ -136,6 +152,9 @@ global state. Structured output returns a typed Pydantic object, which made the 
 **What needs work.** `AnthropicModel` can't take a client (so no Bedrock), and its structured output forces tool
 choice, which current Claude models reject (FL-012). Both fixed in a 15-line subclass.
 
+**Onboarding.** Short. The agent ran locally against Bedrock as soon as we had a model that answered; the two gaps above
+were the only detours.
+
 **Would we build with it again?** Yes. The agent definition is short enough to read in one screen, which matters when
 the model sits near a health-adjacent product.
 
@@ -143,8 +162,8 @@ the model sits near a health-adjacent product.
 
 ### Free Exercise DB (`yuhonas/free-exercise-db`) — ✅
 
-**What we used it for.** The exercise corpus: 876 exercises with real demonstration photographs,
-released under the Unlicense, vendored into the repo at commit `a859101`.
+**What we used it for.** The exercise corpus: 876 exercises released under the Unlicense, vendored into the repo at
+commit `a859101`.
 
 **What worked well.** Genuinely excellent for what it is. Public-domain licensing for the data made
 it easy to vendor, and the consistent schema and combined `dist/exercises.json` needed no
@@ -166,9 +185,9 @@ against the shipped data:
 - Common household movements are simply absent — no jumping jacks, burpees, high knees, or
   marching, verified by searching names *and* instruction text.
 
-**How we responded.** Kept the dataset for breadth, metadata and imagery, and authored a small
+**How we responded.** Kept the dataset for breadth and metadata, shipped none of its photographs, and authored a small
 supplementary pack of no-equipment rhythmic movements with hand-authored adaptation edges. Both
 sources are tagged so provenance is always visible.
 
-**Would we use it again?** Yes, without hesitation, for breadth and imagery — with the expectation
-of supplementing it for any home-workout use case.
+**Would we use it again?** Yes, for breadth and metadata — with the expectation of supplementing it for any
+home-workout use case, and of checking image rights separately.

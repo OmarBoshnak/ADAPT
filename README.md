@@ -212,9 +212,11 @@ OS port a view-layer swap rather than a rewrite.
 | Requirement | Version | Notes |
 | --- | --- | --- |
 | Node | ≥ 20 | developed on 24.6 |
-| **JDK** | **17 or 21** | **not 26** — Gradle 9 does not support it. `temurin-21` works. |
-| Android SDK | platform 34 + 36, `system-images;android-34;android-tv;x86` | |
+| Vega SDK | 0.24 | the TV app and the Vega Virtual Device |
+| uv | any recent | the coach and its tests (`npm run verify` runs them); it fetches Python ≥ 3.11 if needed |
 | Xcode | 26.x | only for the iOS phone build. The phone stays on Expo SDK 56: SDK 57 needs Xcode 27's Swift |
+| JDK | 17 or 21 | only for the Fire OS fallback. **Not 26**: Gradle 9 does not support it. `temurin-21` works. |
+| Android SDK | platform 34 + 36, `system-images;android-34;android-tv;x86` | only for the Fire OS fallback |
 
 ---
 
@@ -401,10 +403,12 @@ demonstration photographs. Those photographs were inherited from
 [wrkout/exercises.json](https://github.com/wrkout/exercises.json), which does not say where they came from, so ADAPT
 treats their reuse rights as unverified and does not ship them.
 
-The TV draws twelve movements with three-frame illustrations from
+Every movement in a session is drawn in three frames. Twenty-one use 11 drawings from
 [Workout Guide](https://github.com/bryllim/workout-guide) by Bryl Lim (CC BY-SA 4.0), stored unchanged with their
 licence and per-frame records in [packages/data/illustrations](packages/data/illustrations/workout-guide/README.md) and
-credited on the Home screen. The other movements show a lettered tile.
+credited on the Home screen. Workout Guide has nothing for butt kicks, punches, standing climbers or toe taps, so
+the other eight use seven figures drawn for ADAPT by [tools/figures](tools/figures/draw.py)
+([details](packages/data/illustrations/adapt/README.md)).
 
 It is a gym corpus, not a home-workout one — only 111 entries are equipment-free, and just 18 of
 those have a strictly-easier peer to step down to. ADAPT therefore supplements it with a small

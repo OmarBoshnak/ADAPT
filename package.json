@@ -29,6 +29,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "graph": "tsc --build && node tools/build-graph/dist/cli.js",
+    "figures": "uv run tools/figures/draw.py packages/data/illustrations/adapt",
     "sim": "tsc --build && node tools/sim/dist/cli.js",
     "relay": "tsc --build && node apps/relay/dist/main.js",
     "fake-sensor": "tsc --build && node tools/fake-sensor/dist/cli.js",

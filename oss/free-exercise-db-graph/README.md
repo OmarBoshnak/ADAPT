@@ -9,7 +9,7 @@ exercises gets:
 - **`substituteWith`**: a *different* movement for the same muscles, for when an exercise doesn't suit someone.
 
 "Too hard" and "doesn't suit me" are different problems with different answers, which is why there are two edges.
-Extracted from [ADAPT](../../README.md), an adaptive workout app for Fire TV, where both edges drive the workout
+Extracted from ADAPT, an adaptive workout app for Fire TV, where both edges drive the workout
 changing under you.
 
 ## Use

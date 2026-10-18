@@ -1,0 +1,18 @@
+# Two-session learning arc on the Vega Virtual Device — 2026-10-13
+# TV only (no phone), seed 5, 12 min, medium energy. One remote 'easier' press in session 1;
+# forced stop (vega device terminate-app) 8 s after session 1 saved, relaunch, session 2 with no input.
+# Lines are the app's own [adapt] log, read with 'loggingctl log -f -v com.adapt.tv', prefixed with the process id.
+
+pid 26611 saved · bias 1.00 · 0 sessions
+pid 26611 start · 6 movements · threshold 90.4 · learned bias 1.00
+pid 26611 adapt 7:40 · predicted-strain · Jumping Jacks → Step Jacks · strain 90.5 of 90.4
+pid 26611 adapt 8:44 · user-correction · Boxer Shuffle → Step and Punch · strain 71.3 of 90.4
+pid 26611 learn 8:44 · easier · model expected 9:53 · bias 1.00 → 0.81
+pid 26611 complete 12:03 · 2 adaptations · next session's bias 0.81
+pid 26611 saved · bias 0.81 · 1 sessions
+pid 44854 start · 6 movements · threshold 73.4 · learned bias 0.81
+pid 44854 adapt 6:49 · predicted-strain · Jumping Jacks → Step Jacks · strain 73.5 of 73.4
+pid 44854 adapt 9:01 · predicted-strain · Boxer Shuffle → Step and Punch · strain 73.4 of 73.4
+pid 44854 adapt 11:23 · predicted-strain · Slow Mountain Climbers → Standing Climbers · strain 73.4 of 73.4
+pid 44854 complete 12:06 · 3 adaptations · next session's bias 0.81
+pid 44854 saved · bias 0.81 · 2 sessions
