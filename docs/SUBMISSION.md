@@ -53,15 +53,14 @@ Deadline **October 23, 2026**. Everything here needs a person, an account or a c
 - [ ] No copyrighted music and no third-party logos or trademarks you lack permission for.
 - [ ] Uploaded to YouTube or Vimeo and publicly visible (unlisted is not enough to be safe).
 
-## 6. On submission day — not before
+## 6. Submission
 
-GitHub invitations expire after seven days. The rules allow either a public repository with an open-source licence
-shown in its About section, or a private one shared as below. Private is the plan: the repository includes the AWS
-account number in `services/coach/agentcore/.cli/deployed-state.json`.
+The rules allow a public repository with an open-source licence shown in its About section, so no collaborator
+invitations are needed.
 
-- [ ] Main repository private.
-- [ ] Invite as collaborators: `testing@devpost.com` (by email), `chris-trag`, `knmeiss`, `giolaq`, `anishamalde`,
-      `mosesroth`, `emersonsklar`.
+- [x] [OmarBoshnak/ADAPT](https://github.com/OmarBoshnak/ADAPT) public, Apache-2.0 detected by GitHub (2026-10-18).
+      Removed photos were dropped from the history before the first push.
+- [ ] Push again after any later commit, so judges see the final state.
 - [ ] Devpost form, with the text in [DEVPOST.md](DEVPOST.md): primary track Fire TV; mini challenges AWS Builder and
       Open Source; repository link; video link; product feedback; friction log entries.
 - [ ] Open Source fields: contribution URL (the PR, or the fork if it is unmerged), project repository URL

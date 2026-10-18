@@ -1,6 +1,6 @@
 # Devpost submission text
 
-Paste-ready answers for the submission form. Fill the three links marked **[link]** on submission day.
+Paste-ready answers for the submission form. Fill the links marked **[link]** on submission day.
 
 ## Name and tagline
 
@@ -59,8 +59,7 @@ Guide illustrations (CC BY-SA 4.0)
 
 ## Repository
 
-**[link]** (private, shared with testing@devpost.com and the Amazon team). Setup and run instructions are in the
-README.
+https://github.com/OmarBoshnak/ADAPT (public, Apache-2.0). Setup and run instructions are in the README.
 
 ## Testing instructions
 
